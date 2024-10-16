@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cxone_api"
+version = "0.0.1"
+dependencies = [
+    "requests==2.32.3",
+    "jsonpath_ng==1.7.0",
+    "validators==0.34.0"
+]
+
