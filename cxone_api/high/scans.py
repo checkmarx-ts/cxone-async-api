@@ -9,7 +9,7 @@ from ..low.projects import retrieve_project_configuration
 from ..low.scans import run_a_repo_scan, run_a_scan
 from ..low.scan_configuration import retrieve_tenant_configuration
 from ..low.uploads import generate_upload_link
-from ..high import upload_to_link
+from ..util import upload_to_link
 
 
 class ScanInvoker:

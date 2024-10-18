@@ -42,6 +42,22 @@ class TestClient(BaseTest):
     async def test_valid_api_endpoint(self):
         self.assertTrue(CxOneApiEndpoint("foo.bar.com"))
 
+    async def test_invalid_api_endpoint(self):
+        with self.assertRaises(EndpointException):
+            CxOneApiEndpoint("foo.bar.com\\")
+
+    async def test_api_endpoint_str_default_scheme(self):
+            self.assertTrue(str(CxOneApiEndpoint("foo.bar.com")) == "https://foo.bar.com/api/")
+
+    async def test_api_endpoint_str_supplied_scheme(self):
+            self.assertTrue(str(CxOneApiEndpoint("foo.bar.com", "http")) == "http://foo.bar.com/api/")
+
+
+    async def test_api_endpoint_display_default_scheme(self):
+            self.assertTrue(CxOneApiEndpoint("foo.bar.com").display_endpoint == "https://foo.bar.com/")
+
+    async def test_api_endpoint_display_supplied_scheme(self):
+            self.assertTrue(CxOneApiEndpoint("foo.bar.com", "http").display_endpoint == "http://foo.bar.com/")
 
 if __name__ == "__main__":
     unittest.main()

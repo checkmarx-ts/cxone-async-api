@@ -11,6 +11,8 @@ class TestLowApplications(BaseTest):
     DEFAULT_APP_NAME = "DELETE_ME_APP"
 
     async def asyncSetUp(self):
+        self.__delete_app_names = []
+        
         apps_resp = await apps.retrieve_applications_info(self.client_oauth, 
                         name=TestLowApplications.DEFAULT_APP_NAME)
 
@@ -30,7 +32,6 @@ class TestLowApplications(BaseTest):
 
             
 
-    __delete_app_names = []
     async def asyncTearDown(self):
         async for appinfo in page_generator(apps.retrieve_applications_info, 
                 'applications', client=self.client_oauth):

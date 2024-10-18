@@ -24,17 +24,18 @@ async def retrieve_last_scan(client : CxOneClient, **kwargs) -> requests.Respons
     return await client.exec_request(requests.get, url)
 
 @dashargs("branch-name", "project-id")
-async def retrieve_list_of_branches(client : CxOneClient) -> requests.Response:
+async def retrieve_list_of_branches(client : CxOneClient, **kwargs) -> requests.Response:
     url = urljoin(client.api_endpoint, "projects/branches")
+    url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)
 
 async def retrieve_project_info(client : CxOneClient, projectid : str) -> requests.Response:
     url = urljoin(client.api_endpoint, f"projects/{projectid}")
     return await client.exec_request(requests.get, url)
 
-async def update_a_project(client : CxOneClient, projectid : str, payload : dict) -> requests.Response:
+async def update_a_project(client : CxOneClient, projectid : str, **kwargs) -> requests.Response:
     url = urljoin(client.api_endpoint, f"projects/{projectid}")
-    return await client.exec_request(requests.put, url, json=payload)
+    return await client.exec_request(requests.put, url, json=kwargs)
 
 async def delete_a_project(client : CxOneClient, projectid : str) -> requests.Response:
     url = urljoin(client.api_endpoint, f"projects/{projectid}")

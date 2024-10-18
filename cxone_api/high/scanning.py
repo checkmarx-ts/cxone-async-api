@@ -9,12 +9,12 @@ from ..low.scans import retrieve_scan_details, run_a_scan, run_a_repo_scan
 from ..low.scan_configuration import retrieve_tenant_configuration
 from ..low.projects import retrieve_project_configuration
 from ..low.uploads import generate_upload_link
-from . import upload_to_link
+from ..util import upload_to_link
 
 class ScanInvoker:
     @staticmethod
     async def scan_get_response(cxone_client : CxOneClient, project_repo : ProjectRepoConfig,
-        branch : str, engine_config : Union[list,dict] = None , tags : dict = None,
+        branch : str, engine_config : Union[list,dict], tags : dict = None,
         src_zip_path : str = None, clone_user : str = None, clone_cred_type : str = None,
         clone_cred_value : str = None) -> Response:
 
@@ -49,8 +49,8 @@ class ScanInvoker:
                 if engine_config is not None else {}
             elif isinstance(engine_config, dict):
                 submit_payload["config"] = [{ "type" : x, "value" : {}
-                  if engine_config[x] is None else engine_config[x]}
-                  for x in engine_config] if engine_config is not None else {}
+                if engine_config[x] is None else engine_config[x]}
+                for x in engine_config] if engine_config is not None else {}
 
             if tags is not None:
                 submit_payload["tags"] = tags
@@ -78,19 +78,19 @@ class ScanInvoker:
 
     @staticmethod
     async def scan_get_scanid(cxone_client : CxOneClient, project_repo : ProjectRepoConfig,
-        branch : str, engines : list = None , tags : dict = None, src_zip_path : str = None,
+        branch : str, engines : list, tags : dict = None, src_zip_path : str = None,
         clone_user : str = None, clone_cred_type : str = None,
         clone_cred_value : str = None) -> str:
 
         response = await ScanInvoker.scan_get_response(cxone_client, project_repo, branch,
             engines, tags, src_zip_path, clone_user, clone_cred_type, clone_cred_value)
-        response_json = response.json()
+        response_json = json_on_ok(response)
 
         if not response.ok:
             raise ScanException(f"Scan error for project {project_repo.project_id}:"
-                        f"Status: {response.status_code} : {response.json()}")
+                        f"Status: {response.status_code} : {response_json}")
 
-        return json_on_ok(response_json)['id'] if "id" in response_json.keys() else None
+        return response_json['id'] if "id" in response_json.keys() else None
 
 
     @staticmethod
