@@ -1,6 +1,6 @@
-import uuid, asyncio, time
+import uuid, asyncio
 import cxone_api.low.projects as projs
-from cxone_api.high.scanning import ScanInvoker, ScanLoader
+from cxone_api.high.scanning import ScanInvoker
 from cxone_api.high.projects import ProjectRepoConfig
 from cxone_api.util import json_on_ok
 from tests import BaseTest
@@ -9,9 +9,6 @@ from tests import BaseTest
 
 class TestLowProjects(BaseTest):
 
-    DEFAULT_REPO = "https://github.com/nleach999/SimplyVulnerable.git"
-    DEFAULT_BRANCH = "master"
-    MAX_SCAN_SECONDS = 650
     
     async def asyncSetUp(self):
         self.__delete_projects = []
@@ -22,7 +19,7 @@ class TestLowProjects(BaseTest):
             await projs.delete_a_project(self.client_oauth, projid)
 
     
-    async def __create_project(self, client, repoUrl=DEFAULT_REPO, mainBranch=DEFAULT_BRANCH):
+    async def __create_project(self, client, repoUrl=BaseTest.DEFAULT_REPO, mainBranch=BaseTest.DEFAULT_BRANCH):
         name = str(uuid.uuid4())
         response = await projs.create_a_project(client, name=name, repoUrl=repoUrl, mainBranch=mainBranch)
         result = json_on_ok(response)
@@ -79,19 +76,9 @@ class TestLowProjects(BaseTest):
 
     async def __make_scan(self, projid):
         return await ScanInvoker.scan_get_scanid(self.client_oauth, await ProjectRepoConfig.from_project_id(self.client_oauth, projid),
-                                                TestLowProjects.DEFAULT_BRANCH, ['sast', 'sca'])
+                                                BaseTest.DEFAULT_BRANCH, ['sast', 'sca'])
     
-    async def __wait_scan(self, client, scanid):
-        start = time.time()
-        while time.time() - start < TestLowProjects.MAX_SCAN_SECONDS:
-            inspector = await ScanLoader.load(client, scanid)
-            if inspector.executing:
-                await asyncio.sleep(10.0)
-                continue
-            else:
-                return inspector.successful
-        
-        return False
+
 
     async def test_get_project_last_finished_scan(self):
         projid = json_on_ok(await self.__create_project(self.client_oauth))['id']
@@ -102,7 +89,7 @@ class TestLowProjects(BaseTest):
             if not(projid in result.keys() and result[projid]['id'] == scanid):
                 self.fail(f"Expected {scanid} as the last scan.")
            
-            self.assertTrue(await self.__wait_scan(client, scanid))
+            self.assertTrue(await self.wait_for_scan_completion(client, scanid))
 
 
         await self.execute_client_call(projs.retrieve_last_scan, validate_scan, {"project_ids" : lambda: [projid]})
@@ -120,7 +107,7 @@ class TestLowProjects(BaseTest):
         scanid = await self.__make_scan(projid)
 
         async def validate_branches(response, client):
-            self.assertTrue(await self.__wait_scan(client, scanid) and TestLowProjects.DEFAULT_BRANCH in json_on_ok(response))
+            self.assertTrue(await self.wait_for_scan_completion(client, scanid) and BaseTest.DEFAULT_BRANCH in json_on_ok(response))
 
         await self.execute_client_call(projs.retrieve_list_of_branches, validate_branches, {"project_id" : lambda: projid})
 
