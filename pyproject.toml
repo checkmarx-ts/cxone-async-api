@@ -4,10 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cxone_api"
-version = "0.0.1"
+dynamic = ["version"]
 dependencies = [
     "requests==2.32.3",
     "jsonpath_ng==1.7.0",
     "validators==0.34.0"
 ]
+description = "CheckmarxOne Async API"
+requires-python = ">=3.10"
 
+[tool.setuptools]
+package-dir = {"cxone_api" = "cxone_api"}
+
+[tool.setuptools.dynamic]
+version = { attr = "cxone_api.__version__.__version__" }
