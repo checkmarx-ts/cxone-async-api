@@ -2,7 +2,7 @@ import unittest
 import os
 import asyncio
 import time
-from cxone_api.high.scanning import ScanLoader
+from cxone_api.high.scans import ScanLoader
 from cxone_api import CxOneClient, AuthRegionEndpoints, ApiRegionEndpoints
 
 class BaseTest(unittest.IsolatedAsyncioTestCase):

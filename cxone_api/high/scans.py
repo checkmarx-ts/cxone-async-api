@@ -6,10 +6,9 @@ from .. import CxOneClient
 from ..util import json_on_ok
 from ..exceptions import ScanException
 from ..low.projects import retrieve_project_configuration
-from ..low.scans import run_a_repo_scan, run_a_scan
+from ..low.scans import retrieve_scan_details, run_a_repo_scan, run_a_scan
 from ..low.scan_configuration import retrieve_tenant_configuration
-from ..low.uploads import generate_upload_link
-from ..util import upload_to_link
+from ..low.uploads import generate_upload_link, upload_to_link
 
 
 class ScanInvoker:
@@ -86,13 +85,13 @@ class ScanInvoker:
         response = await ScanInvoker.scan_get_response(cxone_client, project_repo, branch, engines,
                               tags, src_zip_path, clone_user, clone_cred_type, clone_cred_value)
 
-        response_json = response.json()
-
         if not response.ok:
             raise ScanException(f"Scan error for project {project_repo.project_id}: "
                                 f"Status: {response.status_code} : {response.json()}")
 
-        return json_on_ok(response_json)['id'] if "id" in response_json.keys() else None
+        response_json = response.json()
+
+        return response_json['id'] if "id" in response_json.keys() else None
 
 
     @staticmethod
@@ -273,4 +272,11 @@ class ScanFilterConfig:
                     retval[engine][config_name] = default_engine_config[engine][config_name]
 
         return retval
-   
+
+
+class ScanLoader:
+
+    @staticmethod
+    async def load(cxone_client : CxOneClient, scanid : str) -> ScanInspector:
+        scan = json_on_ok(await retrieve_scan_details(cxone_client, scanid))
+        return ScanInspector(scan)
