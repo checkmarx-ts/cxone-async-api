@@ -13,12 +13,14 @@ jobs:
               with:
                 python-version: '3.12'
 
-            - name: Install packages
-              run: pip install coverage
+            - name: Install build packages
+              run: pip install coverage build
 
             - name: Execute Unit Tests
               run: |
                 export PYTHONPATH=$(pwd)
+                python3 -m build
+                pip3 install -r ./cxone_api.egg-info/requires.txt
                 coverage run -m unittest -f -v
                 coverage report
     
