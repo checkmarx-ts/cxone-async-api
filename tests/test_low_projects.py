@@ -1,6 +1,6 @@
 import uuid, asyncio
 import cxone_api.low.projects as projs
-from cxone_api.high.scanning import ScanInvoker
+from cxone_api.high.scans import ScanInvoker
 from cxone_api.high.projects import ProjectRepoConfig
 from cxone_api.util import json_on_ok
 from tests import BaseTest
