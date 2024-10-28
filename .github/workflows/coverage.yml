@@ -18,6 +18,7 @@ jobs:
 
             - name: Execute Unit Tests
               run: |
+                export PYTHONPATH=$(pwd)
                 coverage run -m unittest -f -v
                 coverage report
     
