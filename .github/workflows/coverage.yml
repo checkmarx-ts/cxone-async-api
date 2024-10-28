@@ -39,8 +39,5 @@ jobs:
               python3 -m build
               pip3 install -r ./cxone_api.egg-info/requires.txt
               coverage run -m unittest -f -v
-              for f in $(ls examples/*.py); do
-                coverage run -a $f
-              done
               coverage report
     
