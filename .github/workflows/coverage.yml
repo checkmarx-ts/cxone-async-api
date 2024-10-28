@@ -33,11 +33,14 @@ jobs:
           - name: Install build packages
             run: pip install coverage build
 
-          - name: Execute Unit Tests
+          - name: Execute Unit Tests and Examples
             run: |
               export PYTHONPATH=$(pwd)
               python3 -m build
               pip3 install -r ./cxone_api.egg-info/requires.txt
               coverage run -m unittest -f -v
+              for f in $(ls examples/*.py); do
+                coverage run -a $f
+              done
               coverage report
     
