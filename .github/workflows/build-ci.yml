@@ -1,0 +1,11 @@
+name: CI Build
+on:
+    workflow_call:
+    workflow_dispatch:
+    push:
+
+jobs:
+
+    call-unit-tests-coverage:
+        uses: ./.github/workflows/coverage.yml
+    
