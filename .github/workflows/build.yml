@@ -4,11 +4,11 @@ on:
     inputs:
       version:
         type: string
-        default: ""
+        default: ''
       prerelease:
         type: boolean
         default: false
-      build-only:
+      buildonly:
         type: boolean
         default: false
 
@@ -24,7 +24,7 @@ jobs:
           python-version: "3.12"
 
       - name: Set Version
-        if: ${{ inputs.version }} != ""
+        if: ${{ inputs.version }} != ''
         run: echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
 
       - name: Build package
@@ -33,7 +33,7 @@ jobs:
           python3 -m build
 
       - name: Make release text
-        if: ${{ inputs.build-only }} != "true"
+        if: ${{ inputs.buildonly }} != 'true'
         run: |
           echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
@@ -50,7 +50,7 @@ jobs:
           echo '```' >> release.md
 
       - name: Create GitHub Release
-        if: ${{ inputs.build-only }} != "true"
+        if: ${{ inputs.buildonly }} != 'true'
         id: create_release
         uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5
         with:
