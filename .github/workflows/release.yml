@@ -81,10 +81,14 @@ jobs:
       contents: write
     if: always()
     steps:
+      - name: Show Job Status
+        run: |
+          echo Job Status: ${{ job.status }}
+
       - name: Fetch Code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-        if: ${{ job.status != 'success' }} 
+        if: ${{ ! job.status == 'success' }} 
 
       - name: Remove CodeTag
         run: git push origin ':refs/tags/${{ needs.make-tag-string.outputs.tag }}'
-        if: ${{ job.status != 'success' }} 
+        if: ${{ ! job.status == 'success' }} 
