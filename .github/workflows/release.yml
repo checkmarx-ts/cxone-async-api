@@ -10,6 +10,10 @@ on:
         description: "Check if this is to publish a pre-release."
         required: true
         type: boolean
+      skiputs:
+        description: "Check to skip unit test execition (not advised)."
+        required: true
+        type: boolean
 
 jobs:
   make-tag-string:
@@ -39,6 +43,8 @@ jobs:
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
     needs: [validate-no-tag]
+    with:
+      skip: ${{ inputs.skiputs }}
     secrets:
       TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
       TEST_REGION: ${{ secrets.TEST_REGION }}

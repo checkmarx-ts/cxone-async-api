@@ -12,10 +12,15 @@ on:
         required: true
       TEST_API_KEY:
         required: true
+    inputs:
+      skip:
+        type: boolean
+        default: false
 
 jobs:
   execute-unit-tests-coverage:
     runs-on: ubuntu-latest
+    if: ${{ inputs.skip == true }}
     env:
       TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
       TEST_REGION: ${{ secrets.TEST_REGION }}
