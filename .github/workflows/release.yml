@@ -72,14 +72,15 @@ jobs:
           git config --global user.name "${{ github.triggering_actor }}"
           git add cxone_api/__version__.py
           git commit -m "build ${{ needs.make-tag-string.outputs.tag }}"
-          git push origin
+          git tag ${{ needs.make-tag-string.outputs.tag }}
+          git push origin --tags
         
-      - name: Tag repo ${{ needs.make-tag-string.outputs.tag }}
-        uses: richardsimko/update-tag@e173a8ef8f54ab526a91dad6139a25efed62424c
-        with:
-          tag_name: ${{ needs.make-tag-string.outputs.tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Tag repo ${{ needs.make-tag-string.outputs.tag }}
+      #   uses: richardsimko/update-tag@e173a8ef8f54ab526a91dad6139a25efed62424c
+      #   with:
+      #     tag_name: ${{ needs.make-tag-string.outputs.tag }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set tag status
         id: done_check
