@@ -52,12 +52,12 @@ jobs:
       - name: Create GitHub release
         if: ${{ ! inputs.buildonly }} 
         id: create_release
-        uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
           artifacts: ./dist/*.whl
           bodyFile: release.md
-          name: ${{ inputs.tag }}
+          name: ${{ inputs.version }}
           prerelease: ${{ inputs.prerelease }}
-          tag: ${{ inputs.tag }}
+          tag: ${{ inputs.version }}
