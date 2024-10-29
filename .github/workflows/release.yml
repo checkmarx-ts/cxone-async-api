@@ -83,7 +83,9 @@ jobs:
     steps:
       - name: Show Job Status
         run: |
-          echo ${{ jobs }}
+          echo ${{ toJSON(github) }}
+          echo ------------------------------------
+          echo ${{ toJSON(job) }}
 
       - name: Fetch Code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
