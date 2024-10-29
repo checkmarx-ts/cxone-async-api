@@ -39,7 +39,7 @@ jobs:
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
           WHEEL_NAME=$(basename $(ls dist/*.whl))
           WHEEL_HASH=$(pip3 hash dist/$WHEEL_NAME | grep "^--")
-          RELEASE_URL="http://foo.bar.com/${{ inputs.version }}/$WHEEL_NAME"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/$WHEEL_NAME"
 
           echo '```' >> release.md
           echo $RELEASE_URL >> release.md
