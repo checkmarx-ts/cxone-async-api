@@ -75,13 +75,6 @@ jobs:
           git tag ${{ needs.make-tag-string.outputs.tag }}
           git push origin
           git push origin --tags
-        
-      # - name: Tag repo ${{ needs.make-tag-string.outputs.tag }}
-      #   uses: richardsimko/update-tag@e173a8ef8f54ab526a91dad6139a25efed62424c
-      #   with:
-      #     tag_name: ${{ needs.make-tag-string.outputs.tag }}
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set tag status
         id: done_check
