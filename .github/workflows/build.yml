@@ -33,7 +33,7 @@ jobs:
           python3 -m build
 
       - name: Make release text
-        if: ${{ inputs.buildonly == false }} 
+        if: ${{ ! inputs.buildonly }} 
         run: |
           echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
@@ -50,7 +50,7 @@ jobs:
           echo '```' >> release.md
 
       - name: Create GitHub release
-        if: ${{ inputs.buildonly == 'false' }} 
+        if: ${{ ! inputs.buildonly }} 
         id: create_release
         uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5
         with:

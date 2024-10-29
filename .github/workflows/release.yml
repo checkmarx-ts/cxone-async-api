@@ -11,7 +11,7 @@ on:
         required: true
         type: boolean
       skiputs:
-        description: "Check to skip unit test execition (not advised)."
+        description: "Check to skip unit test execution (not advised)."
         required: true
         type: boolean
 
