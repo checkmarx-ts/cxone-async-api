@@ -32,12 +32,19 @@ jobs:
           pip3 install build
           python3 -m build
 
+      - name: DISPLAY INPUTS
+        run: |
+          echo build-only: ${{ inputs.build-only }}
+          echo prerelease: ${{ inputs.prerelease }}
+          echo version: ${{ inputs.version }}
+
+
       - name: Make release text
-        if: ${{ inputs.build-only }} != "false"
+        if: ${{ inputs.build-only }} == "true"
         run: |
           echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
-          WHEEL_NAME=$(ls dist/*.whl)
+          WHEEL_NAME=$(basename $(ls dist/*.whl))
           WHEEL_HASH=$(pip3 hash dist/$WHEEL_NAME | grep "^--")
           RELEASE_URL="http://foo.bar.com/${{ inputs.version }}/$WHEEL_NAME"
 
@@ -50,7 +57,7 @@ jobs:
           echo '```' >> release.md
 
       - name: Create GitHub Release
-        if: ${{ inputs.build-only }} != "false"
+        if: ${{ inputs.build-only }} == "true"
         id: create_release
         uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5
         with:
