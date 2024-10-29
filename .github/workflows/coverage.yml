@@ -18,8 +18,17 @@ on:
         default: false
 
 jobs:
+  skip-unit-tests-coverage:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.skip }}
+    steps:
+      - name: Dummy
+        run: exit 0
+      
+
   execute-unit-tests-coverage:
     runs-on: ubuntu-latest
+    if: ${{ ! inputs.skip }}
     env:
       TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
       TEST_REGION: ${{ secrets.TEST_REGION }}
@@ -28,20 +37,16 @@ jobs:
       TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
     steps:
       - name: Fetch Code
-        if: ${{ ! inputs.skip }}
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
       - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
-        if: ${{ ! inputs.skip }}
         with:
           python-version: "3.12"
 
       - name: Install build packages
-        if: ${{ ! inputs.skip }}
         run: pip install coverage build
 
       - name: Execute Unit Tests
-        if: ${{ ! inputs.skip }}
         run: |
           export PYTHONPATH=$(pwd)
           python3 -m build
