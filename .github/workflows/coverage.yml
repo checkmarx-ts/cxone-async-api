@@ -20,7 +20,7 @@ on:
 jobs:
   execute-unit-tests-coverage:
     runs-on: ubuntu-latest
-    if: ${{ inputs.skip == true }}
+    if: ${{ ! inputs.skip }}
     env:
       TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
       TEST_REGION: ${{ secrets.TEST_REGION }}
@@ -38,7 +38,7 @@ jobs:
       - name: Install build packages
         run: pip install coverage build
 
-      - name: Execute Unit Tests and Examples
+      - name: Execute Unit Tests
         run: |
           export PYTHONPATH=$(pwd)
           python3 -m build
