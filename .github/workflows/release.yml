@@ -79,6 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     if: always()
     steps:
       - name: Get Job Status
