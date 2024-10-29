@@ -48,8 +48,12 @@ jobs:
           echo '```' >> release.md
 
           echo '```' >> release.md
-          echo "$RELEASE_URL $WHEEL_HASH" >> release.md
+          echo "git+https://github.com/${{ github.repository }}.git@${{ inputs.version }}" >> release.md
           echo '```' >> release.md
+
+          echo "## Hashes" >> release.md
+          echo "$WHEEL_NAME : $WHEEL_HASH" >> release.md
+
 
       - name: Create GitHub release
         if: ${{ ! inputs.buildonly }} 
