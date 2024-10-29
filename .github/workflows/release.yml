@@ -73,6 +73,7 @@ jobs:
           git add cxone_api/__version__.py
           git commit -m "build ${{ needs.make-tag-string.outputs.tag }}"
           git tag ${{ needs.make-tag-string.outputs.tag }}
+          git push origin
           git push origin --tags
         
       # - name: Tag repo ${{ needs.make-tag-string.outputs.tag }}
