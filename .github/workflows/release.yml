@@ -36,6 +36,7 @@ jobs:
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
         with:
           ref: refs/tags/${{ needs.make-tag-string.outputs.tag }}
+          
       - name: Fail if tag ${{ needs.make-tag-string.outputs.tag }} exists
         run: |
           [[ $(git describe --tags) ==  ${{ needs.make-tag-string.outputs.tag }} ]] && exit 1 || :
@@ -55,6 +56,8 @@ jobs:
   create-tag:
     runs-on: ubuntu-latest
     needs: [make-tag-string, validate-no-tag]
+    outputs:
+      done: ${{ steps.done_check.status }}
     permissions:
       contents: write
     steps:
@@ -65,41 +68,29 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set tag status
+        id: done_check
+        run: |
+          echo "status=true" >> "$GITHUB_OUTPUT"
+
   publish-release:
     permissions:
-        contents: write
+      contents: write
     needs: [make-tag-string, create-tag, call-unit-tests-coverage]
     uses: ./.github/workflows/build.yml
     with:
-        version: ${{ needs.make-tag-string.outputs.tag }}
-        prerelease: ${{ inputs.prerelease }}
+      version: ${{ needs.make-tag-string.outputs.tag }}
+      prerelease: ${{ inputs.prerelease }}
 
   remove-tag-on-failure:
     needs: [make-tag-string, create-tag, publish-release]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      actions: read
-    if: always()
+    if: ${{ failure() && needs.create-tag.outputs.done }}
     steps:
-      - name: Get Job Status
-        uses: octokit/request-action@v2.x
-        id: job_status
-        with:
-          route: GET /repos/{repo}/actions/runs/{run_id}
-          repo: ${{ github.repository }}
-          run_id: ${{ github.run_id }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: Show Job Status
-        run: |
-          echo ${{ toJSON(steps.job_status.outputs.data) }}
-
       - name: Fetch Code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-        if: ${{ job.status != 'success' }} 
 
       - name: Remove CodeTag
         run: git push origin ':refs/tags/${{ needs.make-tag-string.outputs.tag }}'
-        if: ${{ job.status != 'success' }} 
