@@ -1,16 +1,15 @@
 name: Publish a Release
-on: 
+on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'The version tag to use in the form of x.x.x'
+        description: "The version tag to use in the form of x.x.x"
         required: true
         type: string
       prerelease:
-        description: 'Check if this is to publish a pre-release.'
+        description: "Check if this is to publish a pre-release."
         required: true
         type: boolean
-
 
 jobs:
   make-tag-string:
@@ -18,12 +17,12 @@ jobs:
     outputs:
       tag: ${{ steps.tag-string.outputs.tag }}
     steps:
-      - name: Create tag
+      - name: Create tag string
         run: |
           [ ${{ inputs.prerelease }} = false ] && echo "tag=v${{ inputs.version }}" >> $GITHUB_OUTPUT || \
             echo "tag=v${{ inputs.version }}-$GITHUB_RUN_NUMBER-prerelease" >> $GITHUB_OUTPUT
         id: tag-string
-      
+
   validate-no-tag:
     runs-on: ubuntu-latest
     needs: [make-tag-string]
@@ -37,12 +36,20 @@ jobs:
         run: |
           [[ $(git describe --tags) ==  ${{ needs.make-tag-string.outputs.tag }} ]] && exit 1 || :
 
+  call-unit-tests-coverage:
+    uses: ./.github/workflows/coverage.yml
+    secrets:
+      TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
+      TEST_REGION: ${{ secrets.TEST_REGION }}
+      TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
+      TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
+      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
 
   create-tag:
     runs-on: ubuntu-latest
     needs: [make-tag-string, validate-no-tag]
     permissions:
-        contents: write
+      contents: write
     steps:
       - name: Tag repo ${{ needs.make-tag-string.outputs.tag }}
         uses: richardsimko/update-tag@e173a8ef8f54ab526a91dad6139a25efed62424c
@@ -51,24 +58,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
-          
   publish-release:
-    needs: [create-tag]
+    needs: [create-tag, call-unit-tests-coverage]
     runs-on: ubuntu-latest
     steps:
-        - name: FAIL
-          run: |
-            sleep 30
-            exit 1
-
-
+      - name: FAIL
+        run: |
+          sleep 30
+          exit 1
 
   remove-tag-on-failure:
     needs: [make-tag-string, create-tag, publish-release]
     runs-on: ubuntu-latest
     permissions:
-        contents: write
+      contents: write
     if: always()
     steps:
       - name: Fetch Code

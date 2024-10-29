@@ -1,43 +1,42 @@
 name: Unit Tests and Coverage [called]
 on:
-    workflow_call:
-        secrets:
-            TEST_TENANT_ID:
-                required: true
-            TEST_REGION:
-                required: true
-            TEST_OAUTH_CLIENT_SECRET:
-                required: true
-            TEST_OAUTH_CLIENT_ID:
-                required: true
-            TEST_API_KEY:
-                required: true
+  workflow_call:
+    secrets:
+      TEST_TENANT_ID:
+        required: true
+      TEST_REGION:
+        required: true
+      TEST_OAUTH_CLIENT_SECRET:
+        required: true
+      TEST_OAUTH_CLIENT_ID:
+        required: true
+      TEST_API_KEY:
+        required: true
 
 jobs:
-     execute-unit-tests-coverage:
-        runs-on: ubuntu-latest
-        env:
-          TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
-          TEST_REGION: ${{ secrets.TEST_REGION }}
-          TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
-          TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
-          TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
-        steps:
-          - name: Fetch Code
-            uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-        
-          - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
-            with:
-              python-version: '3.12'
+  execute-unit-tests-coverage:
+    runs-on: ubuntu-latest
+    env:
+      TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
+      TEST_REGION: ${{ secrets.TEST_REGION }}
+      TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
+      TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
+      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
-          - name: Install build packages
-            run: pip install coverage build
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.12"
 
-          - name: Execute Unit Tests and Examples
-            run: |
-              export PYTHONPATH=$(pwd)
-              python3 -m build
-              pip3 install -r ./cxone_api.egg-info/requires.txt
-              coverage run -m unittest -f -v
-              coverage report
-    
+      - name: Install build packages
+        run: pip install coverage build
+
+      - name: Execute Unit Tests and Examples
+        run: |
+          export PYTHONPATH=$(pwd)
+          python3 -m build
+          pip3 install -r ./cxone_api.egg-info/requires.txt
+          coverage run -m unittest -f -v
+          coverage report

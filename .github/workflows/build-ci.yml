@@ -1,56 +1,55 @@
 name: CI Build Steps [called]
 on:
-    workflow_call:
-      secrets:
-        TEST_TENANT_ID:
-            required: true
-        TEST_REGION:
-            required: true
-        TEST_OAUTH_CLIENT_SECRET:
-            required: true
-        TEST_OAUTH_CLIENT_ID:
-            required: true
-        TEST_API_KEY:
-            required: true
-    push:
+  workflow_call:
+    secrets:
+      TEST_TENANT_ID:
+        required: true
+      TEST_REGION:
+        required: true
+      TEST_OAUTH_CLIENT_SECRET:
+        required: true
+      TEST_OAUTH_CLIENT_ID:
+        required: true
+      TEST_API_KEY:
+        required: true
+  push:
 
 jobs:
-    call-unit-tests-coverage:
-        uses: ./.github/workflows/coverage.yml
-        secrets:
-          TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
-          TEST_REGION: ${{ secrets.TEST_REGION }}
-          TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
-          TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
-          TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
+  call-unit-tests-coverage:
+    uses: ./.github/workflows/coverage.yml
+    secrets:
+      TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
+      TEST_REGION: ${{ secrets.TEST_REGION }}
+      TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
+      TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
+      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
 
-    check-min-python-version-support:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Fetch Code
-          uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-      
-        - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
-          with:
-            python-version: '3.12'
+  check-min-python-version-support:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
-        - name: Check support of Python 3.9+
-          run: |
-            pip3 install vermin
-            vermin -t=3.9 --backport asyncio --backport typing --no-tips .
-   
-    check-package-build:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Fetch Code
-          uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-      
-        - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
-          with:
-            python-version: '3.12'
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.12"
 
-        - name: Check package build
-          run: |
-            pip3 install build
-            python3 -m build
+      - name: Check support of Python 3.9+
+        run: |
+          pip3 install vermin
+          vermin -t=3.9 --backport asyncio --backport typing --no-tips .
 
+  check-package-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.12"
+
+      - name: Check package build
+        run: |
+          pip3 install build
+          python3 -m build
