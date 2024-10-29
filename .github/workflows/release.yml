@@ -61,6 +61,17 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Fetch Code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+      - name: Set Version
+        if: ${{ inputs.version != '' }}
+        run: |
+          echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
+          git add cxone_api/__version__.py
+          git commit -m "build ${{ inputs.version }}"
+          git push origin
+        
       - name: Tag repo ${{ needs.make-tag-string.outputs.tag }}
         uses: richardsimko/update-tag@e173a8ef8f54ab526a91dad6139a25efed62424c
         with:

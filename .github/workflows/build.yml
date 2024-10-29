@@ -25,10 +25,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set Version
-        if: ${{ inputs.version != '' }}
-        run: echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
-
       - name: Build package
         run: |
           pip3 install build
