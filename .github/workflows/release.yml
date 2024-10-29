@@ -38,6 +38,7 @@ jobs:
 
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
+    needs: [validate-no-tag]
     secrets:
       TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
       TEST_REGION: ${{ secrets.TEST_REGION }}
@@ -61,7 +62,7 @@ jobs:
   publish-release:
     permissions:
         contents: write
-    needs: [create-tag, call-unit-tests-coverage]
+    needs: [make-tag-string, create-tag, call-unit-tests-coverage]
     uses: ./.github/workflows/build.yml
     with:
         version: ${{ needs.make-tag-string.outputs.tag }}

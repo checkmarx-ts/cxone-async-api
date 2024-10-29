@@ -1,4 +1,4 @@
-name: Unit Tests and Coverage [called]
+name: Unit Tests and Coverage Steps [called]
 on:
   workflow_call:
     secrets:

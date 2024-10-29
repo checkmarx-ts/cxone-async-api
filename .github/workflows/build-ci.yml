@@ -1,4 +1,4 @@
-name: CI Build [called]
+name: CI Build Steps [called]
 on:
   workflow_call:
     secrets:
