@@ -52,7 +52,10 @@ jobs:
           echo '```' >> release.md
 
           echo "## Hashes" >> release.md
-          echo "$WHEEL_NAME : $WHEEL_HASH" >> release.md
+          echo "### $WHEEL_NAME" >> release.md
+          echo '```' >> release.md
+          echo "$WHEEL_HASH" >> release.md
+          echo '```' >> release.md
 
 
       - name: Create GitHub release
