@@ -59,13 +59,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-release:
+    permissions:
+        contents: write
     needs: [create-tag, call-unit-tests-coverage]
-    runs-on: ubuntu-latest
-    steps:
-      - name: FAIL
-        run: |
-          sleep 30
-          exit 1
+    uses: ./.github/workflows/build.yml
+    with:
+        version: ${{ needs.make-tag-string.outputs.tag }}
+        prerelease: ${{ inputs.prerelease }}
 
   remove-tag-on-failure:
     needs: [make-tag-string, create-tag, publish-release]

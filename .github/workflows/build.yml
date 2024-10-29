@@ -1,0 +1,63 @@
+name: Release Build [called]
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: ""
+      prerelease:
+        type: boolean
+        default: false
+      build-only:
+        type: boolean
+        default: false
+
+jobs:
+  package-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+
+      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        with:
+          python-version: "3.12"
+
+      - name: Set Version
+        if: ${{ inputs.version }} != ""
+        run: echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
+
+      - name: Build package
+        run: |
+          pip3 install build
+          python3 -m build
+
+      - name: Make release text
+        if: ${{ inputs.build-only }} != "false"
+        run: |
+          echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
+          echo "Installation can be performed by adding one of the following lines to your `requirements.txt` file:" >> release.md
+          WHEEL_NAME=$(ls dist/*.whl)
+          WHEEL_HASH=$(pip3 hash dist/$WHEEL_NAME | grep "^--")
+          RELEASE_URL="http://foo.bar.com/${{ inputs.version }}/$WHEEL_NAME"
+
+          echo '```' >> release.md
+          echo $RELEASE_URL >> release.md
+          echo '```' >> release.md
+
+          echo '```' >> release.md
+          echo "$RELEASE_URL $WHEEL_HASH" >> release.md
+          echo '```' >> release.md
+
+      - name: Create GitHub Release
+        if: ${{ inputs.build-only }} != "false"
+        id: create_release
+        uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: ./dist/*.whl
+          bodyFile: release.md
+          name: ${{ inputs.tag }}
+          prerelease: ${{ inputs.prerelease }}
+          tag: ${{ inputs.tag }}
