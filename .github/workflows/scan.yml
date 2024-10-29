@@ -17,7 +17,6 @@ jobs:
     execute-scan:
         runs-on: ubuntu-latest
         permissions:
-            security-events: write
             contents: read
             pull-requests: write
             statuses: write
