@@ -87,12 +87,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: failure()
+    if: ${{ failure() && needs.create-tag.outputs.done }}
     steps:
-      - name: show output
-        run: |
-          echo ${{ needs.create-tag.outputs.done }}
-
       - name: Fetch Code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
