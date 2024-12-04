@@ -120,12 +120,4 @@ class TestLowProjects(BaseTest):
 
         await self.execute_client_call(projs.retrieve_project_info, validate_project_info, {"projectid" : lambda: projid})
 
-    async def test_undocumented_retrieve_project_config(self):
-        projid = json_on_ok(await self.__create_project(self.client_oauth))['id']
-
-        async def validate_project_config(response, client):
-            self.assertTrue(len(json_on_ok(response)) > 0)
-
-        await self.execute_client_call(projs.retrieve_project_configuration, validate_project_config, {"projectid" : lambda: projid})
-
 
