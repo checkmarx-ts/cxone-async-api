@@ -1,14 +1,15 @@
-from typing import Union
+from typing import Union, List
 from jsonpath_ng import parse
 from requests import Response
 from .projects import ProjectRepoConfig
 from .. import CxOneClient
 from ..util import json_on_ok
 from ..exceptions import ScanException
-from ..low.projects import retrieve_project_configuration
+from ..low.scan_configuration import retrieve_project_configuration
 from ..low.scans import retrieve_scan_details, run_a_repo_scan, run_a_scan
 from ..low.scan_configuration import retrieve_tenant_configuration
 from ..low.uploads import generate_upload_link, upload_to_link
+from .projects import ProjectRepoConfig
 
 
 class ScanInvoker:
@@ -243,6 +244,10 @@ class ScanFilterConfig:
                         json_on_ok(await retrieve_project_configuration(cxone_client, project_id)))
 
     @staticmethod
+    async def from_repo_config(cxone_client : CxOneClient, repo_config : ProjectRepoConfig):
+        return await ScanFilterConfig.from_project_config_json(cxone_client, await repo_config.get_project_scan_config())
+
+    @staticmethod
     def __append_csv_strings(left : str, right : str) -> str:
         if left is None:
             return right
@@ -273,6 +278,19 @@ class ScanFilterConfig:
 
         return retval
 
+    @property
+    def engines_with_filters(self) -> List[str]:
+        return list(self.__engine_filters.keys())
+    
+    def compute_filters(self, engine : str, additional_filters : str = None) -> str:
+        ret_val = additional_filters
+        if engine in self.__engine_filters.keys():
+            if ret_val is None or len(ret_val) == 0:
+                ret_val = self.__engine_filters[engine]
+            else:
+                ret_val = ScanFilterConfig.__append_csv_strings(ret_val, self.__engine_filters[engine]['filter'])
+
+        return ret_val
 
 class ScanLoader:
 
