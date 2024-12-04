@@ -1,7 +1,7 @@
 import os, asyncio
 from pathlib import Path
 import cxone_api as cx
-from cxone_api.util import json_on_ok, page_generator
+from cxone_api.util import page_generator
 import cxone_api.low.projects as projects
 
 # This example is intended to demonstrate the use of mostly low-level APIs to
