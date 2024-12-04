@@ -1,14 +1,15 @@
 import asyncio
 from ..util import CloneUrlParser, json_on_ok
 from .. import CxOneClient
-from ..low.projects import retrieve_last_scan, retrieve_project_info, retrieve_project_configuration
+from ..low.projects import retrieve_last_scan, retrieve_project_info
+from ..low.scan_configuration import retrieve_project_configuration
 from ..low.repos_manager import get_scm_by_id, retrieve_repo_by_id
 
 class ProjectRepoConfig:
 
     def __common_init(self, cxone_client : CxOneClient):
         self.__client = cxone_client
-        self.__fetched_undocumented_config = False
+        self.__fetched_scan_config = False
         self.__fetched_repomgr_config = False
         self.__fetched_scm_config = False
         self.__lock = asyncio.Lock()
@@ -36,19 +37,18 @@ class ProjectRepoConfig:
             raise AttributeError(name)
         
 
-    async def __get_undocumented_config(self):
-        # The documented project API seems to have a bug and does not return the repoUrl.  The undocumented
-        # API used by the UI has it.  The undocumented API will no longer be called when the project
-        # API is fixed.
+    async def get_project_scan_config(self):
         async with self.__lock:
-            if not self.__fetched_undocumented_config:
-                self.__fetched_undocumented_config = True
-                self.__undocumented_config = json_on_ok(await retrieve_project_configuration(self.__client, self.project_id))
+            if not self.__fetched_scan_config:
+                self.__fetched_scan_config = True
+                self.__scan_config = json_on_ok(await retrieve_project_configuration(self.__client, projectid=self.project_id))
 
-        return self.__undocumented_config
+        return self.__scan_config
         
-    async def __get_repourl_from_undocumented_config(self):
-        for entry in await self.__get_undocumented_config():
+    async def __get_repourl_from_scan_config(self):
+        # The project config API does not always return the repoUrl.  The scan configuration
+        # API used by the UI has it if it is not in the project config.
+        for entry in await self.get_project_scan_config():
             if entry['key'] == "scan.handler.git.repository":
                 return entry['value']
         
@@ -92,8 +92,8 @@ class ProjectRepoConfig:
             return await self.__get_repourl_from_repomgr_config()
         elif len(self.__project_data['repoUrl']) > 0:
             return self.__project_data['repoUrl']
-        elif len(await self.__get_repourl_from_undocumented_config()) > 0:
-            return await self.__get_repourl_from_undocumented_config()
+        elif len(await self.__get_repourl_from_scan_config()) > 0:
+            return await self.__get_repourl_from_scan_config()
         else:
             return None
 

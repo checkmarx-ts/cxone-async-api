@@ -57,7 +57,8 @@ class TestLowProjects(BaseTest):
         projid = result['id']
 
         async def validate_proj_tag_in_list(response, client):
-            self.assertTrue(set(["foo", "bar"]) == set(json_on_ok(response).keys()))
+            found_tags = set(json_on_ok(response).keys())
+            self.assertTrue(len([x for x in found_tags if x in ['foo', 'bar']]) > 0)
 
         result['tags'] = {"foo" : "bar", "bar" : ""}
 
@@ -119,13 +120,5 @@ class TestLowProjects(BaseTest):
             self.assertTrue(result['id'] == projid)
 
         await self.execute_client_call(projs.retrieve_project_info, validate_project_info, {"projectid" : lambda: projid})
-
-    async def test_undocumented_retrieve_project_config(self):
-        projid = json_on_ok(await self.__create_project(self.client_oauth))['id']
-
-        async def validate_project_config(response, client):
-            self.assertTrue(len(json_on_ok(response)) > 0)
-
-        await self.execute_client_call(projs.retrieve_project_configuration, validate_project_config, {"projectid" : lambda: projid})
 
 

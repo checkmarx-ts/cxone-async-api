@@ -40,10 +40,3 @@ async def update_a_project(client : CxOneClient, projectid : str, **kwargs) -> r
 async def delete_a_project(client : CxOneClient, projectid : str) -> requests.Response:
     url = urljoin(client.api_endpoint, f"projects/{projectid}")
     return await client.exec_request(requests.delete, url)
-
-
-# Undocumented APIs:
-
-async def retrieve_project_configuration(client : CxOneClient, projectid : str) -> requests.Response:
-    url = urljoin(client.api_endpoint, f"configuration/project?project-id={projectid}")
-    return await client.exec_request(requests.get, url)
