@@ -1,4 +1,5 @@
 import re
+from typing import Type, Any, List
 
 class EndpointException(BaseException):
     pass
@@ -35,3 +36,13 @@ class ResponseException(BaseException):
 
 class ScanException(BaseException):
     pass
+
+class ConfigurationException(BaseException):
+
+    @staticmethod
+    def wrong_type(value : Any, type : Type):
+        return ConfigurationException(f"Value of [{value}] is not of type [{type}].")
+
+    @staticmethod
+    def not_in_enum(value : Any, valid_values : List[str]):
+        return ConfigurationException(f"Value of [{value}] is not one of {valid_values}.")
