@@ -1,4 +1,4 @@
-import uuid, asyncio
+import uuid
 import cxone_api.low.projects as projs
 from cxone_api.high.scans import ScanInvoker
 from cxone_api.high.projects import ProjectRepoConfig
