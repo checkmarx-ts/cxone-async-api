@@ -36,7 +36,7 @@ async def delete_project_configuration(client : CxOneClient, **kwargs) -> reques
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.delete, url)
 
-@dashargs("scan-id")
+@dashargs("project-id", "scan-id")
 async def retrieve_scan_configuration(client : CxOneClient, **kwargs) -> requests.Response:
     url = urljoin(client.api_endpoint, "configuration/scan")
     url = join_query_dict(url, kwargs)

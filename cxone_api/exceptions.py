@@ -46,3 +46,7 @@ class ConfigurationException(BaseException):
     @staticmethod
     def not_in_enum(value : Any, valid_values : List[str]):
         return ConfigurationException(f"Value of [{value}] is not one of {valid_values}.")
+
+    @staticmethod
+    def read_only():
+        return ConfigurationException("Configuration values are read-only.")

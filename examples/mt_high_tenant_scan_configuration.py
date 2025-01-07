@@ -1,10 +1,5 @@
 import os, asyncio
-from pathlib import Path
-from cxone_api.util import page_generator
 import cxone_api as cx
-import cxone_api.low.projects as projects
-from cxone_api.high.projects import ProjectRepoConfig
-from cxone_api.high.scans import ScanFilterConfig
 from cxone_api.high.scan_configuration import TenantScanConfiguration
 from cxone_api.high.scan_configuration.categories import ConfigurationPropertyHandler
 
