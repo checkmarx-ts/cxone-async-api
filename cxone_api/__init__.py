@@ -130,7 +130,7 @@ class ApiEU2(CxOneApiEndpoint):
 
 class ApiDEU(CxOneApiEndpoint):
     def __init__(self):
-        super().__init__("deu.checkmarx.net")
+        super().__init__("deu.ast.checkmarx.net")
 
 class ApiANZ(CxOneApiEndpoint):
     def __init__(self):

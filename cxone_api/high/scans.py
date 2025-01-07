@@ -286,7 +286,7 @@ class ScanFilterConfig:
         ret_val = additional_filters
         if engine in self.__engine_filters.keys():
             if ret_val is None or len(ret_val) == 0:
-                ret_val = self.__engine_filters[engine]
+                ret_val = self.__engine_filters[engine]['filter']
             else:
                 ret_val = ScanFilterConfig.__append_csv_strings(ret_val, self.__engine_filters[engine]['filter'])
 
