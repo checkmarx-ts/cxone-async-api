@@ -49,6 +49,7 @@ jobs:
       - name: Execute Unit Tests
         run: |
           export PYTHONPATH=$(pwd)
+          echo "__version__='0.0.0'" > cxone_api/__version__.py
           python3 -m build
           pip3 install -r ./cxone_api.egg-info/requires.txt
           coverage run -m unittest -f -v

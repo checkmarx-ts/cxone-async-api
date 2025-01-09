@@ -66,4 +66,6 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
         await asyncio.gather(asyncio.create_task(oauth_task()), asyncio.create_task(apikey_task()))
 
     def assert_response_ok(self, response, client):
+        if not response.ok:
+            print(response.text)
         self.assertTrue(response.ok)
