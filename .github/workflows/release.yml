@@ -67,13 +67,9 @@ jobs:
       - name: Set Version
         if: ${{ inputs.version != '' }}
         run: |
-          echo "__version__='${{ needs.make-tag-string.outputs.tag }}'" > cxone_api/__version__.py
           git config --global user.email "${{ github.triggering_actor }}"
           git config --global user.name "${{ github.triggering_actor }}"
-          git add cxone_api/__version__.py
-          git commit -m "build ${{ needs.make-tag-string.outputs.tag }}"
           git tag ${{ needs.make-tag-string.outputs.tag }}
-          git push origin
           git push origin --tags
 
       - name: Set tag status

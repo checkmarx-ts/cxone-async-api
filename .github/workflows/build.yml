@@ -27,6 +27,7 @@ jobs:
 
       - name: Build package
         run: |
+          echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
           pip3 install build
           python3 -m build
 
