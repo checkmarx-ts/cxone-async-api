@@ -113,14 +113,15 @@ def dashargs(*args : str):
 
 
 
-async def page_generator(coro, array_element, offset_param='offset', **kwargs):
+async def page_generator(coro, array_element=None, offset_param='offset', **kwargs):
     """
     An async generator function that is used to automatically fetch the next page
     of results from the API when the API supports result paging.
 
     Parameters:
         coro - The coroutine executed to fetch data from the API.
-        array_element - The root element in the JSON response containing the array of results.
+        array_element - The root element in the JSON response containing the array of results. Use None
+                        if the root element is the array element.
         offset_param - The name of the API parameter that dictates the page offset 
         of the values to fetch.
         kwargs - Keyword args passed to the coroutine at the time the coroutine is executed.
@@ -131,7 +132,8 @@ async def page_generator(coro, array_element, offset_param='offset', **kwargs):
     while True:
         if len(buf) == 0:
             kwargs[offset_param] = offset
-            buf = (await coro(**kwargs)).json()[array_element]
+            json = (await coro(**kwargs)).json()
+            buf = json[array_element] if array_element is not None else json
 
             if buf is None or len(buf) == 0:
                 return
