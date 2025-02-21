@@ -54,6 +54,10 @@ class AuthEU(CxOneAuthEndpoint):
     def __init__(self, tenant_name):
         super().__init__(tenant_name, "eu.iam.checkmarx.net")
 
+class AuthEU2(CxOneAuthEndpoint):
+    def __init__(self, tenant_name):
+        super().__init__(tenant_name, "eu-2.iam.checkmarx.net")
+
 class AuthDEU(CxOneAuthEndpoint):
     def __init__(self, tenant_name):
         super().__init__(tenant_name, "deu.iam.checkmarx.net")
@@ -78,7 +82,7 @@ AuthRegionEndpoints = {
     "US" : AuthUS,
     "US2" : AuthUS2,
     "EU" : AuthEU,
-    "EU2" : AuthEU,
+    "EU2" : AuthEU2,
     "DEU" : AuthDEU,
     "ANZ" : AuthANZ,
     "India" : AuthIndia,
@@ -126,7 +130,7 @@ class ApiEU(CxOneApiEndpoint):
 
 class ApiEU2(CxOneApiEndpoint):
     def __init__(self):
-        super().__init__("eu-2ast.checkmarx.net")
+        super().__init__("eu-2.ast.checkmarx.net")
 
 class ApiDEU(CxOneApiEndpoint):
     def __init__(self):
