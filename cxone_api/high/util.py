@@ -1,5 +1,4 @@
 from .. import CxOneClient
-from typing import Self
 from ..low.scans import retrieve_scan_details
 from .scans import ScanInspector
 from ..util import json_on_ok
@@ -14,7 +13,7 @@ class CxOneVersions:
   SAST : str
   KICS : str
 
-  async def factory(client : CxOneClient) -> Self:
+  async def factory(client : CxOneClient):
     v = json_on_ok(await retrieve_versions(client))
     return CxOneVersions(CxOne=v["CxOne"], SAST=v["SAST"], KICS=v["KICS"])
 
