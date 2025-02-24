@@ -38,5 +38,4 @@ jobs:
           cx-client-id: ${{ secrets.CXONE_CLIENT_ID }}
           cx-client-secret: ${{ secrets.CXONE_CLIENT_SECRET }}
           upload-sarif-file: false
-          cx-cli-debug: true
           
