@@ -113,7 +113,7 @@ def dashargs(*args : str):
 
 
 
-async def page_generator(coro, array_element=None, offset_param='offset', offset_init_value=0, **kwargs):
+async def page_generator(coro, array_element=None, offset_param='offset', offset_init_value=0, offset_is_by_count=True, **kwargs):
     """
     An async generator function that is used to automatically fetch the next page
     of results from the API when the API supports result paging.
@@ -125,6 +125,9 @@ async def page_generator(coro, array_element=None, offset_param='offset', offset
         offset_param - The name of the API parameter that dictates the page offset 
                        of the values to fetch.
         offset_init_value - The initial value set in the offset parameter.
+        offset_is_by_count - Set to true (default) if the API next offset is indicated by count of elements retrieved.
+                             If set to false, the offset is incremented by one to indicate a page offset where the count
+                             of results per page is set by other parameters.
         kwargs - Keyword args passed to the coroutine at the time the coroutine is executed.
     """
     offset = offset_init_value
@@ -139,7 +142,10 @@ async def page_generator(coro, array_element=None, offset_param='offset', offset
             if buf is None or len(buf) == 0:
                 return
 
-            offset = offset + len(buf)
+            if offset_is_by_count:
+                offset = offset + len(buf)
+            else:
+                offset += 1
 
         yield buf.pop()
 
