@@ -56,10 +56,23 @@ jobs:
       - name: Fetch Code
         uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
 
-      - name: Pylint
+      - name: Make virtual environment
+        shell: bash
+        run: |
+          virtualenv .venv
+          . .venv/bin/activate
+          
+          pip install . pylint
+
+      - name: Install packages
         shell: bash
         run: |
           pip install . pylint
+  
+
+      - name: Pylint
+        shell: bash
+        run: |
           pylint --disable=all --enable=E,F --disable=E1121 --score=false cxone_api
 
 
