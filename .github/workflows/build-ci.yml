@@ -47,10 +47,10 @@ jobs:
       max-parallel: 3
       matrix:
         pver:
-          - 3.9
-          - 3.10
-          - 3.11
-          - 3.12
+          - "3.9"
+          - "3.10"
+          - "3.11"
+          - "3.12"
     container: python:${{ matrix.pver }}
     steps:
       - name: Pylint
