@@ -20,7 +20,8 @@ oauth_client = cx.client.CxOneClient.create_with_oauth(os.environ['TEST_OAUTH_CL
                 cx.ApiRegionEndpoints[os.environ['TEST_REGION']]())
 
 async def make_prop_string(name : str, handler : ConfigurationPropertyHandler):
-    return f"\t{name}={await handler.getValue()}({"Can Override" if await handler.getOverride() else "No Override"})"
+    note = "Can Override" if await handler.getOverride() else "No Override"
+    return f"\t{name}={await handler.getValue()}({note})"
 
 async def print_current(scan_config : ScanConfiguration):
     print("SAST Current Settings:")

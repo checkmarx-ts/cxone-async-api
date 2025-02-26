@@ -65,8 +65,8 @@ async def run_example():
         # Wait 30 seconds to check again
         await asyncio.sleep(30)
         scan_inspector = await scan_inspector_factory(oauth_client, scan_id)
-    
-    print (f"Scan Id {scan_id} finished {"successfully" if scan_inspector.successful else f"with failure [{scan_inspector.state_msg}]" if scan_inspector.failed else "with unknown state"}.")
+    note = "successfully" if scan_inspector.successful else f"with failure [{scan_inspector.state_msg}]" if scan_inspector.failed else "with unknown state"
+    print (f"Scan Id {scan_id} finished {note}.")
 
 
 asyncio.run(run_example())

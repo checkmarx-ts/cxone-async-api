@@ -40,9 +40,11 @@ async def run_example():
         # when submitting the scan.  If "Allow Override" is un-checked on any level, filters sent with the scan
         # request are ignored.
         filters = await ScanFilterConfig.from_repo_config(oauth_client, repo_config)
-        print(f"\tEngines configured with filters: {",".join(filters.engines_with_filters)}")
+        filters_csv = ",".join(filters.engines_with_filters)
+        print(f"\tEngines configured with filters: {filters_csv}")
+        computed_filters = filters.compute_filters(engine, "!**/my/additional/filter")
         for engine in filters.engines_with_filters:
-            print(f"\t\t{engine}: {filters.compute_filters(engine, "!**/my/additional/filter")}")
+            print(f"\t\t{engine}: {computed_filters}")
 
 asyncio.run(run_example())
 
