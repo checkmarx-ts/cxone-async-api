@@ -13,6 +13,7 @@ class CxOneVersions:
   SAST : str
   KICS : str
 
+  @staticmethod
   async def factory(client : CxOneClient):
     v = json_on_ok(await retrieve_versions(client))
     return CxOneVersions(CxOne=v["CxOne"], SAST=v["SAST"], KICS=v["KICS"])

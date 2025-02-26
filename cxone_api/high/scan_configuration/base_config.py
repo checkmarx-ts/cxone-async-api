@@ -28,4 +28,4 @@ class BaseScanConfiguration(CxOneConfigElementHandler):
     return self.__containers
 
   def _origin_level(self) -> str:
-    raise NotImplemented("_origin_level")
+    raise NotImplementedError("_origin_level")

@@ -12,7 +12,7 @@ class ScanLanguageMode(Enum):
 
 class RestListEnum:
    async def get_enum(self) -> List[str]:
-      raise NotImplemented("_get_enum")
+      raise NotImplementedError("_get_enum")
    
    async def is_valid(self, value : str) -> bool:
       val_list = await self.get_enum()

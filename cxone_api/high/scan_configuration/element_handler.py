@@ -16,13 +16,13 @@ class CxOneConfigElementHandler:
     return self.__client
 
   async def _load_config(self) -> List[Dict]:
-    raise NotImplemented("_load_config")
+    raise NotImplementedError("_load_config")
 
   async def _write_config(self, items : List[Dict]) -> None:
-    raise NotImplemented("_write_config")
+    raise NotImplementedError("_write_config")
 
   async def _write_deletes(self, keys : List[str]) -> None:
-    raise NotImplemented("_write_deletes")
+    raise NotImplementedError("_write_deletes")
 
   async def commit_config(self) -> None:
     async with self.__lock:
