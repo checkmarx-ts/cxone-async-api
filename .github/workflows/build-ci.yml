@@ -41,6 +41,25 @@ jobs:
           pip3 install vermin
           vermin -t=3.9 --backport asyncio --backport typing --no-tips .
 
+  execute-pylint:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 3
+      matrix:
+        pver:
+          - 3.9
+          - 3.10
+          - 3.11
+          - 3.12
+    container: python:${{ matrix.pver }}
+    steps:
+      - name: Pylint
+        shell: bash
+        run: |
+          pip install . pylint
+          pylint --disable=all --enable=E,F --disable=E1121 --score=false cxone_api
+
+
   call-package-build:
     uses: ./.github/workflows/build.yml
     with:
