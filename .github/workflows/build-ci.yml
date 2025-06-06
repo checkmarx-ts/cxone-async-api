@@ -13,8 +13,8 @@ on:
       TEST_API_KEY:
         required: true
   push:
-    # branches:
-    #   - "*"
+    branches:
+      - "*"
 
 jobs:
   call-unit-tests-coverage:
