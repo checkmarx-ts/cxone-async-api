@@ -81,7 +81,10 @@ class ProjectRepoConfig:
         if cfg is not None:
             if "branches" in cfg.keys():
                 for b in cfg['branches']:
-                    if "isDefaultBranch" in b.keys() and bool(b['isDefaultBranch']):
+                    # Select the default branch as specified in the scm or the first branch
+                    # if only one protected branch is specified.
+                    if ("isDefaultBranch" in b.keys() and bool(b['isDefaultBranch'])) \
+                        or len(cfg['branches']) == 1:
                         if "name" in b.keys():
                             return b['name']
         return ""
