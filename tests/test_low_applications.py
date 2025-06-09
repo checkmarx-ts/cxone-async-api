@@ -16,7 +16,7 @@ class TestLowApplications(BaseTest):
         apps_resp = await apps.retrieve_applications_info(self.client_oauth, 
                         name=TestLowApplications.DEFAULT_APP_NAME)
 
-        if apps_resp.ok and apps_resp.json()['applications'] is None:
+        if apps_resp.ok and len(apps_resp.json()['applications']) == 0:
             app_create_resp = await apps.create_an_application(self.client_oauth,
                                 name=TestLowApplications.DEFAULT_APP_NAME,
                                 description="regression testing purposes")

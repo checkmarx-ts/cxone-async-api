@@ -4,6 +4,7 @@ import asyncio
 import time
 from cxone_api.high.scans import ScanLoader
 from cxone_api import CxOneClient, AuthRegionEndpoints, ApiRegionEndpoints
+from dotenv import load_dotenv
 
 class BaseTest(unittest.IsolatedAsyncioTestCase):
     DEFAULT_REPO = "https://github.com/nleach999/SimplyVulnerable.git"
@@ -12,6 +13,9 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
+        
+        load_dotenv()
+
         api_endpoint = ApiRegionEndpoints[os.environ['TEST_REGION']]()
         iam_endpoint = AuthRegionEndpoints[os.environ['TEST_REGION']](os.environ['TEST_TENANT_ID'])
 
