@@ -10,6 +10,7 @@ from ..low.scans import retrieve_scan_details, run_a_repo_scan, run_a_scan
 from ..low.scan_configuration import retrieve_tenant_configuration
 from ..low.uploads import generate_upload_link, upload_to_link
 from .projects import ProjectRepoConfig
+import asyncio, logging
 
 
 class ScanInvoker:
@@ -96,12 +97,31 @@ class ScanInvoker:
 
 
     @staticmethod
-    async def __upload_zip(cxone_client : CxOneClient, zip_path : str) -> str:
-        upload_url = json_on_ok(await generate_upload_link(cxone_client))['url']
+    async def __upload_zip(cxone_client : CxOneClient, zip_path : str, max_retries : int = 5, retry_delay_s : int = 3) -> str:
+        _log = logging.getLogger("ScanInvoker.__upload_zip")
 
-        upload_response = await upload_to_link(cxone_client, upload_url, zip_path)
-        if not upload_response.ok:
-            return None
+        upload_url = None
+        retries = 0
+        while retries < max_retries:
+            if not retries == 0:
+                await asyncio.sleep(retry_delay_s)
+            retries += 1
+
+            link_response = await generate_upload_link(cxone_client)
+            if link_response.ok:
+                upload_url = link_response.json()['url']
+            else:
+                _log.debug(f"Failed to generate link: {link_response.status_code} {link_response.text}")
+                continue
+
+            upload_response = await upload_to_link(cxone_client, upload_url, zip_path)
+            if not upload_response.ok:
+                _log.debug(f"Failed to upload zip: {link_response.status_code} {link_response.text}")
+                upload_url = None
+                continue
+
+        if upload_url is None:
+            raise ScanException("Failed to upload the zip for scan.")
 
         return upload_url
 
