@@ -1,4 +1,4 @@
-import re, urllib, requests
+import re, urllib, requests, logging, functools, inspect, asyncio
 from datetime import datetime
 from requests import Response
 from requests.compat import urljoin
@@ -83,6 +83,8 @@ def dashargs(*args : str):
 
 
     def decorator(wrapped):
+
+        @functools.wraps(wrapped)
         async def wrapper(*inner_args, **inner_kwargs):
 
             normalized = {}
@@ -113,7 +115,8 @@ def dashargs(*args : str):
 
 
 
-async def page_generator(coro, array_element=None, offset_param='offset', offset_init_value=0, offset_is_by_count=True, **kwargs):
+async def page_generator(coro, array_element=None, offset_param='offset', offset_init_value=0, offset_is_by_count=True, 
+                         page_retries_max=5, page_retry_delay_s=3, **kwargs):
     """
     An async generator function that is used to automatically fetch the next page
     of results from the API when the API supports result paging.
@@ -128,24 +131,42 @@ async def page_generator(coro, array_element=None, offset_param='offset', offset
         offset_is_by_count - Set to true (default) if the API next offset is indicated by count of elements retrieved.
                              If set to false, the offset is incremented by one to indicate a page offset where the count
                              of results per page is set by other parameters.
+        page_retries_max - The number of retries to fetch a page in the event of an error.  Defaults to 5.
+        page_retry_delay_s - The number of seconds to delay the next page fetch retry.  Defaults to 3 seconds.
+        
         kwargs - Keyword args passed to the coroutine at the time the coroutine is executed.
     """
+    _log = logging.getLogger(f"page_generator:{inspect.unwrap(coro).__name__}")
+
     offset = offset_init_value
     buf = []
+    retries = 0
+
 
     while True:
         if len(buf) == 0:
-            kwargs[offset_param] = offset
-            json = (await coro(**kwargs)).json()
-            buf = json[array_element] if array_element is not None else json
+            try:
+                kwargs[offset_param] = offset
+                json = (await coro(**kwargs)).json()
+                buf = json[array_element] if array_element is not None else json
+                retries = 0
 
-            if buf is None or len(buf) == 0:
-                return
+                if buf is None or len(buf) == 0:
+                    return
 
-            if offset_is_by_count:
-                offset = offset + len(buf)
-            else:
-                offset += 1
+                if offset_is_by_count:
+                    offset = offset + len(buf)
+                else:
+                    offset += 1
+            except BaseException as ex:
+                if retries < page_retries_max:
+                    _log.debug(f"Exception fetching next page, will retry: {ex}")
+                    await asyncio.sleep(page_retry_delay_s)
+                    retries += 1
+                    continue
+                else:
+                    _log.debug(f"Abort after {retries} retries", ex)
+                    raise
 
         yield buf.pop()
 
