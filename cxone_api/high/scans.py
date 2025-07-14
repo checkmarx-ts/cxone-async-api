@@ -119,6 +119,8 @@ class ScanInvoker:
                 _log.debug(f"Failed to upload zip: {link_response.status_code} {link_response.text}")
                 upload_url = None
                 continue
+            else:
+                break
 
         if upload_url is None:
             raise ScanException("Failed to upload the zip for scan.")
