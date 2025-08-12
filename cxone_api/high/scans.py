@@ -206,7 +206,9 @@ class ScanInspector:
             maybe = [s for s in self.__current_engine_states() if s in ScanInspector.__maybe_states]
             success = [s for s in self.__current_engine_states()
                        if s in ScanInspector.__success_states]
-            return len(maybe) == 0 and len(success) > 0
+            failed = [s for s in self.__current_engine_states()
+                       if s in ScanInspector.__failed_states]
+            return len(maybe) == 0 and len(failed) == 0 and len(success) > 0
 
         return False
 
