@@ -265,7 +265,7 @@ class ScanFilterConfig:
     @staticmethod
     async def from_project_id(cxone_client : CxOneClient, project_id : str):
         return await ScanFilterConfig.from_project_config_json(cxone_client,
-                        json_on_ok(await retrieve_project_configuration(cxone_client, project_id)))
+                        json_on_ok(await retrieve_project_configuration(cxone_client, project_id=project_id)))
 
     @staticmethod
     async def from_repo_config(cxone_client : CxOneClient, repo_config : ProjectRepoConfig):
