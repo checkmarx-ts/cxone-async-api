@@ -62,13 +62,19 @@ class ScanInvoker:
 
             return  await run_a_scan(cxone_client, submit_payload)
         else:
+
+            if isinstance(engine_config, list):
+                scanner_types = engine_config if engine_config is not None else []
+            elif isinstance(engine_config, dict):
+                scanner_types = list(engine_config.keys())
+
             submit_payload["repoOrigin"] = await project_repo.scm_type
             submit_payload["project"] = {
                 "repoIdentity" : await project_repo.scm_repo_id,
                 "repoUrl" : await project_repo.repo_url,
                 "projectId" : project_repo.project_id,
                 "defaultBranch" : branch,
-                "scannerTypes" : engine_config if engine_config is not None else [],
+                "scannerTypes" : scanner_types,
                 "repoId" : await project_repo.repo_id
             }
 
