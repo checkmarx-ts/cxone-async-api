@@ -53,6 +53,15 @@ class ProjectRepoConfig:
                 return entry['value']
         
         return None
+    
+    async def __get_primary_branch_from_scan_config(self):
+        # The project config API does not always return the repoUrl.  The scan configuration
+        # API used by the UI has it if it is not in the project config.
+        for entry in await self.get_project_scan_config():
+            if entry['key'] == "scan.handler.git.branch":
+                return entry['value']
+        
+        return ""
 
     async def __get_repomgr_config(self):
         # Projects imported from the SCM have their repo credentials stored in the repo-manager
@@ -105,6 +114,8 @@ class ProjectRepoConfig:
             return self.__project_data['mainBranch']
         elif len(await self.__get_primary_branch_from_repomgr_config()) > 0:
             return await self.__get_primary_branch_from_repomgr_config()
+        elif len(await self.__get_primary_branch_from_scan_config()):
+            return await self.__get_primary_branch_from_scan_config()
 
         return None
     
