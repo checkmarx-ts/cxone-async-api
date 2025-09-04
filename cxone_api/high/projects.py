@@ -12,6 +12,7 @@ class ProjectRepoConfig:
         self.__fetched_scan_config = False
         self.__fetched_repomgr_config = False
         self.__fetched_scm_config = False
+        self.__is_imported = False
         self.__lock = asyncio.Lock()
 
     @staticmethod
@@ -19,6 +20,7 @@ class ProjectRepoConfig:
         retval = ProjectRepoConfig()
         ProjectRepoConfig.__common_init(retval, cxone_client)
         retval.__project_data = json
+        retval.__is_imported = "repoId" in retval.__project_data.keys()
 
         return retval
 
@@ -27,6 +29,7 @@ class ProjectRepoConfig:
         retval = ProjectRepoConfig()
         ProjectRepoConfig.__common_init(retval, cxone_client)
         retval.__project_data = json_on_ok(await retrieve_project_info(cxone_client, project_id))
+        retval.__is_imported = "repoId" in retval.__project_data.keys()
         return retval
  
 
@@ -72,7 +75,12 @@ class ProjectRepoConfig:
             if not self.__fetched_repomgr_config:
                 self.__fetched_repomgr_config = True
                 repoId = self.__project_data['repoId']
-                self.__repomgr_config = json_on_ok(await retrieve_repo_by_id(self.__client, repoId))
+
+                repo_response = await retrieve_repo_by_id(self.__client, repoId)
+                if repo_response.ok:
+                    self.__repomgr_config = repo_response.json()
+                else:
+                    self.__repomgr_config = None
         
         return self.__repomgr_config
 
@@ -120,7 +128,7 @@ class ProjectRepoConfig:
         return None
     
     async def __get_scm_config(self):
-        if not await self.is_scm_imported:
+        if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
         
         this_scm_id = await self.scm_id
@@ -143,12 +151,19 @@ class ProjectRepoConfig:
     
     @property
     async def is_scm_imported(self):
-        return await self.__get_repomgr_config() is not None
+        return self.__is_imported
+        
 
+    @property
+    async def scm_creds_expired(self):
+        if not self.__is_imported:
+            return True
+
+        return await self.__get_repomgr_config() is None
 
     @property
     async def scm_id(self):
-        if not await self.is_scm_imported:
+        if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
         
         cfg = await self.__get_repomgr_config()
@@ -162,7 +177,7 @@ class ProjectRepoConfig:
         
     @property
     async def scm_org(self):
-        if not await self.is_scm_imported:
+        if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
 
         return CloneUrlParser(await self.scm_type, await self.repo_url).org
@@ -170,7 +185,7 @@ class ProjectRepoConfig:
 
     @property
     async def scm_type(self):
-        if not await self.is_scm_imported:
+        if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
 
         cfg = await self.__get_scm_config()
@@ -183,14 +198,14 @@ class ProjectRepoConfig:
 
     @property
     async def repo_id(self):
-        if not await self.is_scm_imported:
+        if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
        
         return self.__project_data['repoId']
 
     @property
     async def scm_repo_id(self):
-        if not await self.is_scm_imported:
+        if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
        
         return self.__project_data['scmRepoId']
@@ -203,7 +218,7 @@ class ProjectRepoConfig:
     async def get_enabled_scanners(self, by_branch):
         engines = []
 
-        if await self.is_scm_imported:
+        if await self.is_scm_imported and not await self.scm_creds_expired:
             # Use the engine configuration on the import
             cfg = await self.__get_repomgr_config()
 
