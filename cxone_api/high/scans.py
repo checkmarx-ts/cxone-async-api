@@ -159,7 +159,11 @@ class ScanInspector:
         return ScanInspector.__scan_engines_query.find(self.__json)[0].value
 
     def __status_details(self):
-        return ScanInspector.__status_details_query.find(self.__json)[0].value
+        details = ScanInspector.__status_details_query.find(self.__json)
+        if len(details) > 0:
+            return details[0].value
+        else:
+            return []
 
     @property
     def project_id(self):
