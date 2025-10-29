@@ -29,12 +29,12 @@ class Groups:
     if json is None:
       return None
     
-    if json['parentID'] is not None and len(json['parentID']) > 0 and json['parentID'] in self.__by_gid.keys():
+    if json.get('parentID') is not None and len(json['parentID']) > 0 and json['parentID'] in self.__by_gid.keys():
       parent = self.__GroupDescriptor_factory(self.__by_gid[json['parentID']])
     else:
       parent = None
 
-    return GroupDescriptor(json['id'], "/" / PosixPath(json['name']), json['briefName'], parent, json['roles'])
+    return GroupDescriptor(json['id'], "/" / PosixPath(json['name']), json.get('briefName'), parent, json.get('roles'))
 
   async def __populate_indexes(self):
     async with self.__lock:
