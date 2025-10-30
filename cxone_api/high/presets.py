@@ -74,12 +74,13 @@ class PresetReader:
     self.__tenant_default_descriptor = None
 
   async def __preset_list_generator(self) -> AsyncGenerator:
-    # The paging for the preset API is broken as of the writing of this example.  This is
+    # The paging for the preset API is broken as of the writing of this code.  This is
     # a workaround until page_generator can be used.
     offset = 0
     page = None
     cur_page_index = 0
     while True:
+      # pylint: disable=E1136
       if page is None or cur_page_index == page['totalFilteredCount']:
         page = json_on_ok(await retrieve_list_of_presets(self.__client, self.__engine.value, offset=offset, limit=100))
         cur_page_index = 0
