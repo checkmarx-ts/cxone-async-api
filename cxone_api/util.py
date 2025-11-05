@@ -149,6 +149,8 @@ async def page_generator(coro, array_element=None, offset_param='offset', offset
                 kwargs[offset_param] = offset
                 json = (await coro(**kwargs)).json()
                 buf = json[array_element] if array_element is not None else json
+                if isinstance(buf, dict):
+                    buf = [buf[k] for k in buf.keys()]
                 retries = 0
 
                 if buf is None or len(buf) == 0:
