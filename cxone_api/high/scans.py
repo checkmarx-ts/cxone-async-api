@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Dict
 from jsonpath_ng import parse
 from requests import Response
 from .projects import ProjectRepoConfig
@@ -10,11 +10,22 @@ from ..low.scans import retrieve_scan_details, run_a_repo_scan, run_a_scan
 from ..low.scan_configuration import retrieve_tenant_configuration
 from ..low.uploads import generate_upload_link, upload_to_link
 from .projects import ProjectRepoConfig
-import asyncio, logging
-
+from enum import Enum
+import asyncio, logging, deprecation
 
 class ScanInvoker:
+
+    class CredentialTypeEnum(Enum):
+        NONE = "None"
+        APIKEY = "apiKey"
+        PASSWORD = "password"
+        SSH = "ssh"
+        JWT = "JWT"
+
+    __DEFAULT_ENGINE_CONFIG = [{"type" : "sast", "value" : {}}]
+
     @staticmethod
+    @deprecation.deprecated(details="Use class methods that indicate the scan invocation method by name.")
     async def scan_get_response(cxone_client : CxOneClient, project_repo : ProjectRepoConfig,
                     branch : str, engine_config : Union[list,dict] = None , tags : dict = None,
                     src_zip_path : str = None, clone_user : str = None,
@@ -85,6 +96,7 @@ class ScanInvoker:
                         scm_org if scm_org is not None else "anyorg", submit_payload)
 
     @staticmethod
+    @deprecation.deprecated(details="Use class methods that indicate the scan invocation method by name.")
     async def scan_get_scanid(cxone_client : CxOneClient, project_repo : ProjectRepoConfig,
                               branch : str, engines : list = None , tags : dict = None,
                               src_zip_path : str = None, clone_user : str = None,
@@ -100,6 +112,141 @@ class ScanInvoker:
         response_json = response.json()
 
         return response_json['id'] if "id" in response_json.keys() else None
+    
+    @staticmethod
+    async def __get_logical_engine_config(client : CxOneClient, repo_config : ProjectRepoConfig, engine_config : List[Dict], branch : str) -> List[Dict]:
+        if engine_config is not None:
+            return engine_config
+        elif len(await repo_config.get_enabled_scanners(branch)) > 0:
+            return [{"type" : eng, "value" : {}} for eng in await repo_config.get_enabled_scanners(branch)]
+        else:
+            return ScanInvoker.__DEFAULT_ENGINE_CONFIG
+
+
+    @staticmethod
+    async def scan_by_local_zip_upload(client : CxOneClient, project_id : str, src_zip_path : str, branch : str, 
+                                       engine_config : List[Dict] = None, scan_tags : dict = None) -> Response:
+        
+        effective_engine_config = engine_config
+        if engine_config is None:
+            effective_engine_config = await ScanInvoker.__get_logical_engine_config(client, 
+                                                                                    await ProjectRepoConfig.from_project_id(client, project_id),
+                                                                                    engine_config, branch)
+        submit_payload = { "project" : {"id": project_id},
+                            "type" : "upload",
+                            "handler" : 
+                                { 
+                                    "uploadUrl" : await ScanInvoker.__upload_zip(client, src_zip_path),
+                                    "branch" : "unknown" if branch is None else branch
+                                },
+                                "config" : effective_engine_config
+                         }
+        
+        if scan_tags is not None:
+            submit_payload["tags"] = scan_tags
+
+        return await run_a_scan(client, submit_payload)
+
+    @staticmethod
+    async def scan_by_project_config(client : CxOneClient, project_id : str, branch : str = None, 
+                                     engine_config : List[Dict] = None, scan_tags : dict = None ) -> Response:
+
+        repo_cfg = await ProjectRepoConfig.from_project_id(client, project_id)
+
+        if await repo_cfg.primary_branch is None and branch is None:
+            raise ScanException("Branch was not provided and no primary branch is configured in the project's general settings.")
+        else:
+            effective_branch = branch if branch is not None else await repo_cfg.primary_branch
+        
+        if await repo_cfg.repo_url is None:
+            raise ScanException("There is no repository URL configured in the project's general settings.")
+
+        submit_payload = {
+            "project" : {"id" : project_id}
+            }
+        
+        if scan_tags is not None:
+            submit_payload['tags'] = scan_tags
+
+        if not await repo_cfg.is_scm_imported:
+            submit_payload['type'] = "git"
+            submit_payload['handler'] = {}
+            submit_payload['config'] = await ScanInvoker.__get_logical_engine_config(client, repo_cfg, engine_config, branch)
+
+
+            submit_payload['handler']['branch'] = effective_branch
+            submit_payload['handler']['repoUrl'] = await repo_cfg.repo_url
+            
+            return await run_a_scan(client, submit_payload)
+        else:
+            if engine_config is not None:
+                enabled_scanners = [x['type'] for x in engine_config]
+            else:
+                enabled_scanners = await repo_cfg.get_enabled_scanners(effective_branch)
+            
+            submit_payload["repoOrigin"] = await repo_cfg.scm_type
+            submit_payload["project"] = {
+                "repoIdentity" : await repo_cfg.scm_repo_id,
+                "repoUrl" : await repo_cfg.repo_url,
+                "projectId" : project_id,
+                "defaultBranch" : effective_branch,
+                "scannerTypes" : enabled_scanners,
+                "repoId" : await repo_cfg.repo_id
+            }
+
+            scm_org = await repo_cfg.scm_org
+
+            return await run_a_repo_scan(client, 
+                                         await repo_cfg.scm_id,
+                                         project_id,
+                                         scm_org \
+                                           if scm_org is not None else "anyorg", 
+                                         submit_payload)
+
+
+    @staticmethod
+    async def scan_by_clone_url(client : CxOneClient, project_id : str, clone_url : str, branch : str = None,
+                                clone_user : str = None, clone_cred_type : CredentialTypeEnum = CredentialTypeEnum.NONE, clone_cred_value : str = None,  
+                                engine_config : List[Dict] = None , scan_tags : dict = None) -> Response:
+        
+        if engine_config is None or branch is None:
+            repo_config = await ProjectRepoConfig.from_project_id(client, project_id)
+            effective_engine_config = await ScanInvoker.__get_logical_engine_config(client, 
+                                        repo_config, engine_config, branch)
+            if branch is not None:
+                effective_branch = branch
+            elif await repo_config.primary_branch is not None:
+                effective_branch = await repo_config.primary_branch
+            else:
+                raise ScanException("Branch could not be determined")
+        else:
+            effective_engine_config = engine_config
+            effective_branch = branch
+
+        submit_payload = {
+            "project" : {"id" : project_id},
+            "type" : "git",
+            "config" : effective_engine_config,
+            "handler" : {
+                "branch" : effective_branch,
+                "repoUrl" : clone_url
+                }
+            }
+        
+        if clone_user is not None or clone_cred_value is not None:
+            submit_payload['handler']['credentials'] = {}
+
+        if clone_user is not None:
+            submit_payload['handler']['credentials']['username'] = clone_user
+
+        if clone_cred_value is not None:
+            submit_payload['handler']['credentials']['value'] = clone_cred_value
+            submit_payload['handler']['credentials']['type'] = clone_cred_type.value
+
+        if scan_tags is not None:
+            submit_payload["tags"] = scan_tags
+
+        return await run_a_scan(client, submit_payload)
 
 
     @staticmethod
