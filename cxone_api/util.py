@@ -4,6 +4,7 @@ from requests import Response
 from requests.compat import urljoin
 from .exceptions import ResponseException
 from .client import CxOneClient
+from typing import Coroutine
 
 def json_on_ok(response : Response, specific_responses : list = None):
     """
@@ -115,8 +116,9 @@ def dashargs(*args : str):
 
 
 
-async def page_generator(coro, array_element=None, offset_param='offset', offset_init_value=0, offset_is_by_count=True, 
-                         page_retries_max=5, page_retry_delay_s=3, **kwargs):
+async def page_generator(coro : Coroutine, array_element : str = None, offset_param : str = 'offset', offset_init_value : int = 0, 
+                         offset_is_by_count : bool = True, page_retries_max : int = 5, page_retry_delay_s : int = 3, 
+                         key_element_name : str = None, **kwargs):
     """
     An async generator function that is used to automatically fetch the next page
     of results from the API when the API supports result paging.
@@ -133,6 +135,8 @@ async def page_generator(coro, array_element=None, offset_param='offset', offset
                              of results per page is set by other parameters.
         page_retries_max - The number of retries to fetch a page in the event of an error.  Defaults to 5.
         page_retry_delay_s - The number of seconds to delay the next page fetch retry.  Defaults to 3 seconds.
+        key_element_name - If the API response is a dictionary, the results are values assigned to each key element.  If
+                           this parameter is included, the key element with this name is added to the returned data.
         
         kwargs - Keyword args passed to the coroutine at the time the coroutine is executed.
     """
@@ -150,7 +154,11 @@ async def page_generator(coro, array_element=None, offset_param='offset', offset
                 json = (await coro(**kwargs)).json()
                 buf = json[array_element] if array_element is not None else json
                 if isinstance(buf, dict):
-                    buf = [buf[k] for k in buf.keys()]
+                    if key_element_name is None:
+                        buf = [buf[k] for k in buf.keys()]
+                    else:
+                        buf = [{key_element_name : k} | buf[k] for k in buf.keys()]
+
                 retries = 0
 
                 if buf is None or len(buf) == 0:
