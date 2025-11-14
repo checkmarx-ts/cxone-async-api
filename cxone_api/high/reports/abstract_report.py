@@ -40,3 +40,7 @@ class AbstractReportRequest:
   @property
   def data(self) -> Dict:
     raise NotImplementedError("data")
+  
+  @property
+  def additional_data(self) -> Dict:
+    return {}

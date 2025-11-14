@@ -1,5 +1,3 @@
-from requests import Response
-
 class ReportConfigException(Exception):
   @staticmethod
   def email_list_required():
@@ -8,8 +6,8 @@ class ReportConfigException(Exception):
 
 class ReportException(Exception):
   @staticmethod
-  def error_on_create(response : Response):
-    return ReportException(f"A response of {response.status_code} was received when creating a report.")
+  def error_on_create(msg : str):
+    return ReportException(f"Error creating a report: {msg}")
   
   @staticmethod
   def report_gen_fail():

@@ -31,6 +31,7 @@ class AbstractReportFileFormat:
       "reportType" : self.__content.report_type,
       "data" : self.__content.data
     }
+    request_payload.update(self.__content.additional_data)
 
     return await create_a_report(self.__content.client, **request_payload)
   
@@ -40,9 +41,12 @@ class AbstractReportFileFormat:
   async def _get_report(self) -> Any:
     create_response = await self._create()
 
+    response_json = json_on_ok(create_response, [202, 400, 401, 403])
+
     if not create_response.ok:
-      raise ReportException.error_on_create(create_response)
-    report_id = create_response.json()['reportId']
+      raise ReportException.error_on_create(response_json.get("message", f"{create_response.status_code}"))
+    
+    report_id = response_json['reportId']
 
     start = perf_counter()
     sleep = AbstractReportFileFormat.__SLEEP_INCREMENT_SECONDS
