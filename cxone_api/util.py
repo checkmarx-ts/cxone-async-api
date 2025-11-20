@@ -4,12 +4,28 @@ from requests import Response
 from requests.compat import urljoin
 from .exceptions import ResponseException
 from .client import CxOneClient
-from typing import Coroutine
+from typing import Coroutine, List
 
-def json_on_ok(response : Response, specific_responses : list = None):
-    """
-    A utility function that retrieves the json from a requests.Response object if the
-    response.ok is true.  If response.ok is false, ResponseException is thrown.
+def json_on_ok(response : Response, specific_responses : List[int] = None):
+    """A utility function that retrieves the json from a requests.Response object. 
+    
+    If response.ok is true, a JSON dictionary is returned. If response.ok is false, ResponseException is thrown.
+
+    :param response: A `requests.Response` object with content that is JSON.
+    :type response: requests.Response
+
+    :param specific_responses: A list of integers indicating HTTP status codes
+                               that indicate the response is value.
+                               Defaults to None.
+    :type specific_responses: List[int], optional
+
+    :raises ResponseException: Exception is raised when response.ok is false or
+                               the value for `response.status_code` is not
+                               a member of the list of responses given in
+                               `specific_responses`.
+
+    :return: A JSON dictionary obtained from the response.
+    :rtype: Dict
     """
     if (specific_responses is None and response.ok) or \
         (specific_responses is not None and response.status_code in specific_responses):
@@ -19,8 +35,19 @@ def json_on_ok(response : Response, specific_responses : list = None):
             f"[{response.status_code}] Url: {response.request.url}")
 
 class CloneUrlParser:
-    """
-    A parser for obtaining configuration elements from a clone URL
+    """A parser for obtaining organization and repository name elements from a Git clone URL.
+    
+    The primary use is to normalize retrieval of the organization and repository elements when the Git server
+    implementation adds additional components that are irrelevant for many cases.
+
+    :param repo_type: The name of the repository type.  A value other than `azure` or `bitbucket` parses the `clone_url` value
+                        to assume the path is "<organization>/<repository name>"
+    :type repo_type: str
+
+    :param clone_url: A Git clone url.
+    :type clone_url: str
+
+    :rtype: CloneUrlParser
     """
 
     __parsers = {
@@ -41,27 +68,31 @@ class CloneUrlParser:
 
     @property
     def scheme(self) -> str:
+        """The transport scheme (e.g. http)"""
         return self.__get_prop_or_none("scheme")
 
     @property
     def creds(self) -> str:
+        """The `username:password` credentials, if any."""
         return self.__get_prop_or_none("cred")
 
     @property
     def org(self) -> str:
+        """The name of the organization owning the repository."""
         return self.__get_prop_or_none("org")
 
     @property
     def repo(self) -> str:
+        """The name of the repository."""
         return self.__get_prop_or_none("repo")
 
 
 def dashargs(*args : str):
-    """A utility decorator to convert kwargs used for API calls
-    to their proper name when the API defines them with "-"
-    in the argument name.  This allows API methods to use kwargs
-    with names defined in the API rather than mapping argument names
-    to API query parameters.
+    """A utility decorator to translate python kwargs when an API's parameter has a dash in the name.
+    
+    This converts API parameters to their proper name when the API defines them with "-"
+    in the parameter name.  This allows API methods to use kwargs with names defined in the API
+    rather than mapping argument names to API query parameters.
 
     This decorator will attempt to match key names in kwargs parameters
     passed in the form.  For example, for API parameter "param-name",
@@ -75,8 +106,11 @@ def dashargs(*args : str):
     * paramname
 
 
-    Parameters:
-        args - Strings that match a dashed API argument (e.g. "foo-bar" but not "foobar")
+    :param args: A comma-separated list of strings that match a dashed API argument (e.g. "foo-bar" but not "foobar")
+    :type args: *str
+
+    :return: A Callable that wraps the decorated function.
+    :rtype: Callable
     """
 
     def normalized_string(s):
@@ -119,27 +153,48 @@ def dashargs(*args : str):
 async def page_generator(coro : Coroutine, array_element : str = None, offset_param : str = 'offset', offset_init_value : int = 0, 
                          offset_is_by_count : bool = True, page_retries_max : int = 5, page_retry_delay_s : int = 3, 
                          key_element_name : str = None, **kwargs):
-    """
-    An async generator function that is used to automatically fetch the next page
-    of results from the API when the API supports result paging.
+    """An async generator function that is used to automatically fetch the next page of results from the API.
+     
+    This is used for a variety of APIs where the full result set is too large to return as a single payload.  The API
+    will support a way to retrieve a "page" of results by adjusting parameters sent with subsequent calls.
 
-    Parameters:
-        coro - The coroutine executed to fetch data from the API.
-        array_element - The root element in the JSON response containing the array of results. Use None
-                        if the root element is the array element.
-        offset_param - The name of the API parameter that dictates the page offset 
-                       of the values to fetch.
-        offset_init_value - The initial value set in the offset parameter.
-        offset_is_by_count - Set to true (default) if the API next offset is indicated by count of elements retrieved.
-                             If set to false, the offset is incremented by one to indicate a page offset where the count
-                             of results per page is set by other parameters.
-        page_retries_max - The number of retries to fetch a page in the event of an error.  Defaults to 5.
-        page_retry_delay_s - The number of seconds to delay the next page fetch retry.  Defaults to 3 seconds.
-        key_element_name - If the API response is a dictionary, the results are values assigned to each key element.  If
-                           this parameter is included, the key element with this name is added to the returned data.
-        
-        kwargs - Keyword args passed to the coroutine at the time the coroutine is executed.
-    """
+    :param coro: The coroutine executed to fetch data from the API, usually a method from the low module.
+    :type coro: Coroutine
+    
+    :param array_element: The root element in the JSON response containing the array of results. Use None if the root element is the array element. Defaults to None.
+    :type array_element: str, optional
+
+    :param offset_param: The name of the API parameter that dictates the page offset of the values to fetch. Defaults to 'offset'.
+    :type offset_param: str, optional
+
+
+    :param offset_init_value: The initial value set in the offset parameter. Defaults to 0.
+    :type offset_init_value: int, optional
+
+    :param offset_is_by_count: Set to true if the API next offset is indicated by count of elements retrieved.
+                               If set to false, the offset is incremented by one to indicate a page offset where the count
+                               of results per page is set by other parameters. Defaults to true.
+    :type offset_is_by_count: bool, optional
+
+
+    :param page_retries_max: The number of retries to fetch a page in the event of an error.  Defaults to 5.
+    :type page_retries_max: int, optional
+
+    :param page_retry_delay_s: The number of seconds to delay the next page fetch retry.  Defaults to 3 seconds.
+    :type page_retry_delay_s: int, optional
+
+    :param key_element_name: If the API response is a dictionary, the results are values assigned to each key element.  If
+                        this parameter is included, the key element with this name is added to the returned data. Defaults to None.
+    :type key_element_name: str, optional
+
+    
+    :param kwargs: Keyword args passed to the coroutine at the time the coroutine is executed.
+
+    :raises BaseException: Exceptions thrown by the coroutine are raised after retries.
+
+    :return: A generator that is used in an `async for` statement.
+    :rtype: Generator
+"""
     _log = logging.getLogger(f"page_generator:{inspect.unwrap(coro).__name__}")
 
     offset = offset_init_value
@@ -181,7 +236,22 @@ async def page_generator(coro : Coroutine, array_element : str = None, offset_pa
         yield buf.pop()
 
 
-def join_query_dict(url, querydict):
+def join_query_dict(url, querydict) -> str:
+    """A utility function for appending a query string to a URL following Checkmarx One conventions.
+    
+    All string key/value pairs or strings in a list are urlencoded.
+    Non-string object types are converted to string and should perform their own
+    urlencoding as needed.
+
+    :param url: A URL string to which the query string will be appended.
+    :type url: str
+
+    :param querydict: A dictionary of key/value pairs used to build the query string.
+    :type querydict: Dict
+
+    :return: The value of `url` with a query string appended.
+    :rtype: str
+    """
     query = []
     for key in querydict.keys():
         if querydict[key] is None:
