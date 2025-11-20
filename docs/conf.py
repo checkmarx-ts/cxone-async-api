@@ -23,6 +23,7 @@ autoapi_dirs=["../cxone_api"]
 autoapi_member_order="alphabetical"
 autoapi_options=['members','inherited-members','undoc-members','show-inheritance']
 autoapi_ignore=["cxone_api/__version__.py", "*exceptions*"]
+autoapi_python_class_content='both'
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
