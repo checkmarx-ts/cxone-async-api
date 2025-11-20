@@ -4,6 +4,7 @@ from typing import List, Dict
 from enum import Enum
 
 class ReportType(Enum):
+  """An enumeration of types of report responses to generate."""
   UI = "ui"
   CLI = "cli"
   EMAIL = "email"
