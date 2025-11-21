@@ -40,3 +40,8 @@ html_static_path = ['_static']
 latex_elements = {
   "makeindex" : r"\usepackage[columns=1]{idxlayout}\makeindex"
 }
+
+rst_epilog = """
+.. |LowLevelApiDocstring| replace:: Please refer to the `CheckmarxOne API documentation`_ for usage.
+.. _CheckmarxOne API documentation: https://checkmarx.stoplight.io/docs/checkmarx-one-api-reference-guide
+"""

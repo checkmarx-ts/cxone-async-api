@@ -6,6 +6,7 @@ from ..client import CxOneClient
 # Undocumented APIs:
 
 async def retrieve_scan_log(client : CxOneClient, scanid : str, stream=False) -> requests.Response:
+    """|LowLevelApiDocstring|"""
     url = urljoin(client.api_endpoint, f"logs/{scanid}/sast")
     response = await client.exec_request(requests.get, url)
 
