@@ -11,6 +11,13 @@ from cxone_api.exceptions import AuthException, CommunicationException
 
 
 class CxOneClient:
+    """The CxOneClient object interfaces with the CheckmarxOne API.
+
+    An instance of CxOneClient is required for all API operations.
+    
+    Use the `create_with_oauth` or `create_with_api_key` static methods to create an instance of CxOneClient.
+
+    """
     __AGENT_NAME = 'CxOne PyClient'
 
     def __common__init(self, agent_name, tenant_auth_endpoint,
@@ -37,6 +44,42 @@ class CxOneClient:
     def create_with_oauth(oauth_id, oauth_secret, agent_name, tenant_auth_endpoint,
                           api_endpoint, timeout=60, retries=3, retry_delay_s=15, randomize_retry_delay=True, 
                           proxy=None, ssl_verify=True):
+        """Creates an instance of CxOneClient that uses OAuth client credentials to authenticate with Checkmarx One.
+
+        :param oauth_id: The name of the client that was created via Checkmarx One IAM.
+        :type oauth_id: str
+
+        :param oauth_secret: The secret value that was generated for the oauth client when it was created via Checkmarx One IAM.
+        :type oauth_secret: str
+
+        :param agent_name: The name you want to see as the agent executing API calls.  This will be displayed in logs and scan detail lists.
+        :type agent_name: str
+
+        :param tenant_auth_endpoint: An instance of CxOneAuthEndpoint that represents the Checkmarx One tenant IAM endpoint.
+        :type tenant_auth_endpoint: CxOneAuthEndpoint
+
+        :param api_endpoint: An instance of CxOneApiEndpoint that represents the Checkmarx One tenant API endpoint.
+        :type api_endpoint: CxOneApiEndpoint
+
+        :param timeout: The number of seconds to wait for the remote side to respond to an API call.  Default is 60.
+        :type timeout: int, optional
+
+        :param retries: Set the number of retries to execute when an API call fails before throwing an exception.  Default is 3.
+        :type retries: int, optional
+
+        :param retry_delay_s: Provide the maximum number of seconds to wait before retrying an API call that failed.  Default is 15.
+        :type retry_delay_s: int, optional
+
+        :param randomize_retry_delay: Set to true to randomize the delay between 1 and retry_delay_s on retry.  Default is true.
+        :type randomize_retry_delay: bool, optional
+
+        :param proxy: Provide a dictionary of scheme:url pairs to route all communications through a proxy.  Default is None.
+        :type proxy: Dict, optional
+
+        :param ssl_verify: Set to true to verify SSL certificate validity for connections, false otherwise.  Default is true.
+        :type ssl_verify: bool, optional
+
+        """
         inst = CxOneClient()
         inst.__common__init(agent_name, tenant_auth_endpoint, api_endpoint, timeout,
                             retries, retry_delay_s, randomize_retry_delay, proxy, ssl_verify)
@@ -53,11 +96,44 @@ class CxOneClient:
     def create_with_api_key(api_key, agent_name, tenant_auth_endpoint,
         api_endpoint, timeout=60, retries=3, retry_delay_s=15, randomize_retry_delay=True,
         proxy=None, ssl_verify=True):
+        """Creates an instance of CxOneClient that uses an API key credential to authenticate with Checkmarx One.
+
+        :param api_key: The API key value provided when a user creates an API key.
+        :type api_key: str
+
+        :param agent_name: The name you want to see as the agent executing API calls.  This will be displayed in logs and scan detail lists.
+        :type agent_name: str
+
+        :param tenant_auth_endpoint: An instance of CxOneAuthEndpoint that represents the Checkmarx One tenant IAM endpoint.
+        :type tenant_auth_endpoint: CxOneAuthEndpoint
+
+        :param api_endpoint: An instance of CxOneApiEndpoint that represents the Checkmarx One tenant API endpoint.
+        :type api_endpoint: CxOneApiEndpoint
+
+        :param timeout: The number of seconds to wait for the remote side to respond to an API call.  Default is 60.
+        :type timeout: int, optional
+
+        :param retries: Set the number of retries to execute when an API call fails before throwing an exception.  Default is 3.
+        :type retries: int, optional
+
+        :param retry_delay_s: Provide the maximum number of seconds to wait before retrying an API call that failed.  Default is 15.
+        :type retry_delay_s: int, optional
+
+        :param randomize_retry_delay: Set to true to randomize the delay between 1 and retry_delay_s on retry.  Default is true.
+        :type randomize_retry_delay: bool, optional
+
+        :param proxy: Provide a dictionary of scheme:url pairs to route all communications through a proxy.  Default is None.
+        :type proxy: Dict, optional
+
+        :param ssl_verify: Set to true to verify SSL certificate validity for connections, false otherwise.  Default is true.
+        :type ssl_verify: bool, optional
+
+        """
+
         inst = CxOneClient()
         inst.__common__init(agent_name, tenant_auth_endpoint,
                             api_endpoint, timeout, retries, retry_delay_s, 
                             randomize_retry_delay, proxy, ssl_verify)
-
         inst.__auth_content = urllib.parse.urlencode( {
             "grant_type" : "refresh_token",
             "client_id" : "ast-app",
@@ -67,19 +143,23 @@ class CxOneClient:
         return inst
 
     @property
-    def auth_endpoint(self):
+    def auth_endpoint(self) -> str:
+        """The IAM URL for the Checkmarx One tenant"""
         return str(self.__auth_endpoint)
 
     @property
-    def api_endpoint(self):
+    def api_endpoint(self) -> str:
+        """The API URL for the Checkmarx One tenant"""
         return str(self.__api_endpoint)
 
     @property
-    def display_endpoint(self):
+    def display_endpoint(self) -> str:
+        """The URL suitable for prefixing deep links into the Checkmarx One tenant"""
         return str(self.__api_endpoint.display_endpoint)
 
     @property
-    def admin_endpoint(self):
+    def admin_endpoint(self) -> str:
+        """The URL for the administrative API endpoint for the Checkmarx One tenant"""
         return self.__auth_endpoint.admin_endpoint
 
     async def __get_request_headers(self):
@@ -158,6 +238,15 @@ class CxOneClient:
                 self.__auth_result = await self.__auth_task()
 
     async def exec_request(self, verb_func, *args, **kwargs):
+        """Executes an API call.
+
+        :param verb_func: The function from the requests modules (e.g. get, put, post, etc) used to execute the API call.
+
+        :param *args: Arguments passed to the verb_func invocation.
+
+        :param **kwargs: Arguments passed to the verb_func invocation.
+        
+        """
         _log = logging.getLogger("CxOneClient.exec_request")
 
         if not self.__proxy is None:
