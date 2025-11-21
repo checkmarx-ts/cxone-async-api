@@ -79,6 +79,8 @@ class CxOneClient:
         :param ssl_verify: Set to true to verify SSL certificate validity for connections, false otherwise.  Default is true.
         :type ssl_verify: bool, optional
 
+        :rtype: CxOneClient
+
         """
         inst = CxOneClient()
         inst.__common__init(agent_name, tenant_auth_endpoint, api_endpoint, timeout,
@@ -127,6 +129,8 @@ class CxOneClient:
 
         :param ssl_verify: Set to true to verify SSL certificate validity for connections, false otherwise.  Default is true.
         :type ssl_verify: bool, optional
+
+        :rtype: CxOneClient
 
         """
 
