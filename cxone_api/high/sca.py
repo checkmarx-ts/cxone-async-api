@@ -10,6 +10,7 @@ from time import perf_counter, sleep
 
 
 class ScaReportType(enum.Enum):
+  """An enumeration indicating the type of SCA report requested."""
   CycloneDxJson = "CycloneDxJson"
   CycloneDxXml = "CycloneDxXml"
   SpdxJson = "SpdxJson"
@@ -23,23 +24,43 @@ class ScaReportType(enum.Enum):
 @dataclass_json
 @dataclass(frozen=True)
 class ScaReportParameters:
-        hideDevAndTestDependencies : bool = False
-        showOnlyEffectiveLicenses : bool = False
-        excludePackages : bool = False
-        excludeLicenses : bool = False
-        excludeVulnerabilities : bool = False
-        excludePolicies : bool = False
-        filePaths : List[str] = field(default_factory=list)
-        compressOutput : bool = False 
+  """Parameters to control the produced SCA report."""
+  hideDevAndTestDependencies : bool = False
+  showOnlyEffectiveLicenses : bool = False
+  excludePackages : bool = False
+  excludeLicenses : bool = False
+  excludeVulnerabilities : bool = False
+  excludePolicies : bool = False
+  filePaths : List[str] = field(default_factory=list)
+  compressOutput : bool = False 
 
 @dataclass_json
 @dataclass(frozen=True)
 class ScaReportOptions:
+  """Configuration options for SCA reports."""
   fileFormat : ScaReportType = field(metadata=config(encoder=lambda x: x.name))
   exportParameters : ScaReportParameters = field(default_factory=ScaReportParameters)
 
 
 async def get_sca_report(client : CxOneClient, scanId : str, reportOptions : ScaReportOptions, timeout_seconds : float = 300.0) -> requests.Response:
+  """Retrieves an SCA scan report.
+
+  :param client: The CxOneClient instance used to communicate with Checkmarx One
+  :type client: CxOneClient
+
+  :param scanid: The scan id with SCA results that will be used to produce the report.
+  :type scanid: str
+
+  :param reportOptions: Options that control the SCA report.
+  :type reportOptions: ScaReportOptions
+
+  :param timeout_seconds: The number of seconds to wait for the report to be produced before raising an exception to indicate failure.
+  :type timeout_seconds: float
+
+  :raises ResponseException: An exception that indicates failure to retrieve the report for any reason.
+  :rtype: Response
+
+  """
   args = { "scanId" : scanId}
   args.update(reportOptions.to_dict())
   response = json_on_ok(await request_scan_report(client, **args))

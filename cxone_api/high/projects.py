@@ -4,8 +4,10 @@ from .. import CxOneClient
 from ..low.projects import retrieve_last_scan, retrieve_project_info
 from ..low.scan_configuration import retrieve_project_configuration
 from ..low.repos_manager import get_scm_by_id, retrieve_repo_by_id
+from typing import List
 
 class ProjectRepoConfig:
+    """A class that allows inspection of a project's repository configuration."""
 
     def __common_init(self, cxone_client : CxOneClient):
         self.__client = cxone_client
@@ -17,6 +19,17 @@ class ProjectRepoConfig:
 
     @staticmethod
     async def from_project_json(cxone_client : CxOneClient, json : dict):
+        """A factory method to create an instance from the JSON retrieved with the retrieve_project_info API.
+        
+        :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One
+        :type cxone_client: CxOneClient
+
+        :param json: A JSON dictionary.
+        :type json: dict
+
+        :rtype: ProjectRepoConfig
+
+        """
         retval = ProjectRepoConfig()
         ProjectRepoConfig.__common_init(retval, cxone_client)
         retval.__project_data = json
@@ -26,6 +39,17 @@ class ProjectRepoConfig:
 
     @staticmethod
     async def from_project_id(cxone_client : CxOneClient, project_id : str):
+        """A factory method to create an instance using the project ID.
+        
+        :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type cxone_client: CxOneClient
+
+        :param project_id: A project ID.
+        :type project_id: str
+
+        :rtype: ProjectRepoConfig
+
+        """
         retval = ProjectRepoConfig()
         ProjectRepoConfig.__common_init(retval, cxone_client)
         retval.__project_data = json_on_ok(await retrieve_project_info(cxone_client, project_id))
@@ -41,6 +65,10 @@ class ProjectRepoConfig:
         
 
     async def get_project_scan_config(self):
+        """Returns the project's scan configuration.
+        
+        :rtype: dict
+        """
         async with self.__lock:
             if not self.__fetched_scan_config:
                 self.__fetched_scan_config = True
@@ -142,20 +170,24 @@ class ProjectRepoConfig:
         
     @property
     async def primary_branch(self):
+        """The configured primary branch."""
         return await self.__get_logical_primary_branch()
 
     @property
     async def repo_url(self):
+        """The URL for the source repository."""
         url = await self.__get_logical_repo_url()
         return url if url is not None and len(url) > 0 else None
     
     @property
     async def is_scm_imported(self):
+        """A boolean value indicating if the project was created using a code repository import."""
         return self.__is_imported
         
 
     @property
     async def scm_creds_expired(self):
+        """A boolean value indicating if the SCM credentials have expired."""
         if not self.__is_imported:
             return True
 
@@ -163,6 +195,7 @@ class ProjectRepoConfig:
 
     @property
     async def scm_id(self):
+        """The internal ID of the SCM configuration."""
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
         
@@ -177,6 +210,7 @@ class ProjectRepoConfig:
         
     @property
     async def scm_org(self):
+        """The organization in the SCM that owns the source repository associated with this project."""
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
 
@@ -185,6 +219,7 @@ class ProjectRepoConfig:
 
     @property
     async def scm_type(self):
+        """The type of SCM where this repository lives."""
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
 
@@ -198,6 +233,7 @@ class ProjectRepoConfig:
 
     @property
     async def repo_id(self):
+        """The internal ID of the source repository configuration."""
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
        
@@ -205,6 +241,7 @@ class ProjectRepoConfig:
 
     @property
     async def scm_repo_id(self):
+        """The internal ID of the source repository configuration."""
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
        
@@ -213,9 +250,26 @@ class ProjectRepoConfig:
 
     @property
     def project_id(self):
+        """The project ID."""
         return self.__project_data['id']
     
-    async def get_enabled_scanners(self, by_branch):
+    async def get_enabled_scanners(self, by_branch : str) -> List[str]:
+        """Retrieves the scanners that have been selected for scanning, if any.
+        
+        If the project was created as a code repository import, this returns a list of
+        selected scan engines as set in the code repository configuration for the project.
+        
+        If the project is a manual scan project, the list of engines used in the latest
+        scan for the specified branch are returned.  If no scans are found in the project
+        for the specified branch, an empty list is returned.
+
+        :param by_branch: The name of the branch used to retrieve the last scan.
+        :type by_branch: str
+
+
+        :rtype: List[str]
+
+        """
         engines = []
 
         if await self.is_scm_imported and not await self.scm_creds_expired:
