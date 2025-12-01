@@ -14,8 +14,10 @@ from enum import Enum
 import asyncio, logging, deprecation
 
 class ScanInvoker:
+    """A class used to invoke scans using the various methods supported by Checkmarx One."""
 
     class CredentialTypeEnum(Enum):
+        """An enumeration to specify the type of clone credential."""
         NONE = "None"
         APIKEY = "apiKey"
         PASSWORD = "password"
@@ -30,6 +32,7 @@ class ScanInvoker:
                     branch : str, engine_config : Union[list,dict] = None , tags : dict = None,
                     src_zip_path : str = None, clone_user : str = None,
                     clone_cred_type : str = None, clone_cred_value : str = None) -> Response:
+        """deprecated"""
 
         submit_payload = {}
 
@@ -101,6 +104,7 @@ class ScanInvoker:
                               branch : str, engines : list = None , tags : dict = None,
                               src_zip_path : str = None, clone_user : str = None,
                               clone_cred_type : str = None, clone_cred_value : str = None) -> str:
+        """deprecated"""
 
         response = await ScanInvoker.scan_get_response(cxone_client, project_repo, branch, engines,
                               tags, src_zip_path, clone_user, clone_cred_type, clone_cred_value)
@@ -126,6 +130,27 @@ class ScanInvoker:
     @staticmethod
     async def scan_by_local_zip_upload(client : CxOneClient, project_id : str, src_zip_path : str, branch : str, 
                                        engine_config : List[Dict] = None, scan_tags : dict = None) -> Response:
+        """Invokes a scan by uploading a local zip file.
+        
+        :param client: The CxOneClient instance used to communicate with Checkmarx One
+        :type client: CxOneClient
+
+        :param project_id: The project ID where the scan will be invoked.
+        :type project_id: str
+
+        :param src_zip_path: A path to a local zip file to be uploaded for scanning.
+        :type src_zip_path: str or path-like
+
+        :param branch: The name of the branch used when performing the scan.
+        :type branch: str
+
+        :param engine_config: A list of JSON dictionaries containing the engine configuration parameters
+        :type engine_config: List[Dict],optional
+
+        :param scan_tags: A list of key/value pairs to use as scan tags.
+        :type scan_tags: Dict,optional
+
+        """
         
         effective_engine_config = engine_config
         if engine_config is None:
@@ -150,7 +175,24 @@ class ScanInvoker:
     @staticmethod
     async def scan_by_project_config(client : CxOneClient, project_id : str, branch : str = None, 
                                      engine_config : List[Dict] = None, scan_tags : dict = None ) -> Response:
+        """Invokes a scan for projects created by a repository import.
 
+        :param client: The CxOneClient instance used to communicate with Checkmarx One
+        :type client: CxOneClient
+
+        :param project_id: The project ID where the scan will be invoked.
+        :type project_id: str
+
+        :param branch: The name of the branch used when performing the scan. Uses the default branch if not provided.
+        :type branch: str,optional
+
+        :param engine_config: A list of JSON dictionaries containing the engine configuration parameters
+        :type engine_config: List[Dict],optional
+
+        :param scan_tags: A list of key/value pairs to use as scan tags.
+        :type scan_tags: Dict,optional
+
+        """
         repo_cfg = await ProjectRepoConfig.from_project_id(client, project_id)
 
         if await repo_cfg.primary_branch is None and branch is None:
@@ -208,6 +250,37 @@ class ScanInvoker:
     async def scan_by_clone_url(client : CxOneClient, project_id : str, clone_url : str, branch : str = None,
                                 clone_user : str = None, clone_cred_type : CredentialTypeEnum = CredentialTypeEnum.NONE, clone_cred_value : str = None,  
                                 engine_config : List[Dict] = None , scan_tags : dict = None) -> Response:
+        """Invokes a scan using a clone URL.
+
+                
+        :param client: The CxOneClient instance used to communicate with Checkmarx One
+        :type client: CxOneClient
+
+        :param project_id: The project ID where the scan will be invoked.
+        :type project_id: str
+
+        :param clone_url: The clone URL appropriate for the type of clone credential.
+        :type clone_url: str
+
+        :param branch: The name of the branch used when performing the scan. Uses the default branch if not provided.
+        :type branch: str,optional
+
+        :param clone_user: The username matching the credential for the clone.
+        :type clone_user: str,optional
+
+        :param clone_cred_type: The type of clone credential to use for the clone.
+        :type clone_cred_type: CredentialTypeEnum
+
+        :param clone_cred_value: The clone credential that matches the indicated type of credential.
+        :type clone_cred_value: str
+
+        :param engine_config: A list of JSON dictionaries containing the engine configuration parameters
+        :type engine_config: List[Dict],optional
+
+        :param scan_tags: A list of key/value pairs to use as scan tags.
+        :type scan_tags: Dict,optional
+
+        """
         
         if engine_config is None or branch is None:
             repo_config = await ProjectRepoConfig.from_project_id(client, project_id)
@@ -297,6 +370,11 @@ class ScanInspector:
     __success_states = ["Completed"]
 
     def __init__(self, json : dict):
+        """A class used to inspect the status of a scan.
+
+        :param json: A json dictionary of the scan data from the retrieve_scan_details API
+        :type json: Dict
+        """
         self.__json = json
 
     def __root_status(self):
@@ -314,10 +392,12 @@ class ScanInspector:
 
     @property
     def project_id(self):
+        """The project ID containing the scan."""
         return ScanInspector.__projectid_query.find(self.__json)[0].value
 
     @property
     def scan_id(self):
+        """The scan ID of the scan."""
         return ScanInspector.__scanid_query.find(self.__json)[0].value
 
     def __current_engine_states(self):
@@ -334,10 +414,12 @@ class ScanInspector:
 
     @property
     def json(self) -> dict:
+        """The raw scan details json"""
         return self.__json
 
     @property
-    def executing(self):
+    def executing(self) -> bool:
+        """Returns a boolean value indicating if the scan is currently executing."""
         if self.__root_status() in ScanInspector.__executing_states:
             return True
         elif self.__root_status() in ScanInspector.__maybe_states:
@@ -348,6 +430,7 @@ class ScanInspector:
 
     @property
     def failed(self):
+        """Returns a boolean value indicating if the scan ended in a failed state."""
         if self.__root_status() in ScanInspector.__failed_states:
             return True
 
@@ -355,6 +438,7 @@ class ScanInspector:
 
     @property
     def successful(self):
+        """Returns a boolean value indicating if the scan ended in a successful state."""
         if self.__root_status() in ScanInspector.__success_states:
             return True
         elif self.executing:
@@ -371,6 +455,7 @@ class ScanInspector:
 
     @property
     def state_msg(self):
+        """A message about the state of the scan."""
         engine_statuses = []
 
         for detail in self.__status_details():
@@ -385,10 +470,28 @@ class ScanInspector:
 
 
 class ScanFilterConfig:
+    """A class for computing inherited scan file filters.
+
+    This class produces filters that are combined with the tenant and project
+    configuration.  This produces JSON that can be submitted as part of a scan
+    request.
+    """
 
     @staticmethod
     async def from_project_config_json(cxone_client : CxOneClient,
         project_config : list, tenant_config : list = None):
+        """A static method to produce a filter using the JSON project configuration data.
+
+        :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type cxone_client: CxOneClient
+
+        :param project_config: A JSON dictionary returned from the retrieve_project_configuration API.
+        :type project_config: list
+
+        :param tenant_config: A JSON dictionary returned from the retrieve_tenant_configuration API.
+        :type tenant_config: list, optional
+
+        """
         retval = ScanFilterConfig()
 
         if tenant_config is None:
@@ -421,11 +524,31 @@ class ScanFilterConfig:
 
     @staticmethod
     async def from_project_id(cxone_client : CxOneClient, project_id : str):
+        """Creates an instance of ScanFilterConfig with a given project ID
+        
+        :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type cxone_client: CxOneClient
+
+        :param project_id: The project ID that has the filter configuration.
+        :type project_id: str
+    
+        :rtype: ScanFilterConfig
+        """
         return await ScanFilterConfig.from_project_config_json(cxone_client,
                         json_on_ok(await retrieve_project_configuration(cxone_client, project_id=project_id)))
 
     @staticmethod
     async def from_repo_config(cxone_client : CxOneClient, repo_config : ProjectRepoConfig):
+        """Creates an instance of ScanFilterConfig using an instance of ProjectRepoConfig
+        
+        :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type cxone_client: CxOneClient
+
+        :param repo_config: An instance of ProjectRepoConfig for a project that has the filter configuration.
+        :type repo_config: ProjectRepoConfig
+    
+        :rtype: ScanFilterConfig
+        """
         return await ScanFilterConfig.from_project_config_json(cxone_client, await repo_config.get_project_scan_config())
 
     @staticmethod
@@ -439,6 +562,14 @@ class ScanFilterConfig:
         return f"{left.rstrip(',')},{right.lstrip(',')}"
 
     def compute_filters_with_defaults(self, default_engine_config : dict) -> dict:
+        """Creates a dictionary with engine file filter configurations based on the tenant, project, and provided file filter criteria
+        
+        :param default_engine_config: A JSON dictionary with the engine configurations in the format
+        used in scan submission JSON requests.
+        :type default_engine_config: dict
+
+        :rtype: dict
+        """
         retval = {}
         for engine in default_engine_config.keys():
             if engine not in retval.keys():
@@ -461,9 +592,21 @@ class ScanFilterConfig:
 
     @property
     def engines_with_filters(self) -> List[str]:
+        """Returns a list of engines with configured file filters."""
         return list(self.__engine_filters.keys())
     
     def compute_filters(self, engine : str, additional_filters : str = None) -> str:
+        """Retrieves file filters for the specified engine and also adds additional filters.
+        
+        :param engine: The name of the engine for the filter.
+        :type engine: str
+
+        :param additional_filters: A comma-separated filter string that is additionally added to the
+        filters inherited by the tenant and project.
+        :type additional_filters: str
+
+        :rtype: str
+        """
         ret_val = additional_filters
         if engine in self.__engine_filters.keys():
             if ret_val is None or len(ret_val) == 0:
@@ -477,5 +620,16 @@ class ScanLoader:
 
     @staticmethod
     async def load(cxone_client : CxOneClient, scanid : str) -> ScanInspector:
+        """Creates an instance of ScanInspector for the provided Scan Id
+
+            :param client: The CxOneClient instance used to communicate with Checkmarx One
+            :type client: CxOneClient
+
+            :param scanid: The scan id to be inspected.
+            :type scanid: str
+
+            :rtype: ScanInspector
+            
+        """
         scan = json_on_ok(await retrieve_scan_details(cxone_client, scanid))
         return ScanInspector(scan)
