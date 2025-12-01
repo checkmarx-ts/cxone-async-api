@@ -13,18 +13,22 @@ class BaseScanConfiguration(CxOneConfigElementHandler):
   
   @property
   def SAST(self) -> SastScanConfig:
+    """The SAST scan configuration for the class instance scope level."""
     return self.__sast
 
   @property
   def SCA(self) -> ScaScanConfig:
+    """The SCA scan configuration for the class instance scope level."""
     return self.__sca
 
   @property
   def APISec(self) -> ApiSecurityScanConfig:
+    """The APISec scan configuration for the class instance scope level."""
     return self.__api
 
   @property
   def Containers(self) -> ContainerScanConfig:
+    """The Containers scan configuration for the class instance scope level."""
     return self.__containers
 
   def _origin_level(self) -> str:

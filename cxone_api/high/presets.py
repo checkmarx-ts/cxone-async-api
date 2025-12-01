@@ -9,6 +9,7 @@ from cxone_api.util import json_on_ok
 
 
 class PresetEngine(enum.Enum):
+  """An enumeration indicating an engine that supports presets."""
   SAST = "sast"
   IAC = "iac"
 
@@ -53,6 +54,15 @@ class NameNotFoundException(Exception):
 
 class PresetReader:
   def __init__(self, client : CxOneClient, engine : PresetEngine):
+    """A class used to read presets and queries contained in the preset for a given engine.
+
+      :param client: The CxOneClient instance used to communicate with Checkmarx One
+      :type client: CxOneClient
+
+      :param engine: The engine type for the preset to read.
+      :type engine: PresetEngine
+
+    """
     self.__client = client
     self.__engine = engine
     self.__general_lock = asyncio.Lock()
@@ -180,6 +190,10 @@ class PresetReader:
     return self.__preset_id_index[id]
   
   async def get_tenant_default_preset(self) -> Union[PresetDescriptor, None]:
+    """Returns the default preset configured at the tenant level.
+    
+    :rtype: Union[PresetDescriptor, None]
+    """
     await self.__preload()
 
     async with self.__tenant_lock:
@@ -194,6 +208,13 @@ class PresetReader:
     return self.__tenant_default_descriptor
 
   async def get_preset_by_id(self, id : str) -> PresetDescriptor:
+    """Retrieves and returns a PresetDescriptor by preset ID.
+    
+    :param id: A preset ID
+    :type id: str
+
+    :rtype: PresetDescriptor
+    """
     await self.__preload()
     return await self.__get_preset(id)
 
@@ -212,34 +233,74 @@ class PresetReader:
         await self.__cache_unloaded_preset_no_lock(next_id)
 
   async def get_presets(self) -> List[PresetDescriptor]:
+    """Retrieves a list of all available presets.
+
+    :rtype: List[PresetDescriptor]
+    
+    """
     await self.__cache_all_presets()
     return self.__custom_preset_descriptors + self.__standard_preset_descriptors
   
   async def get_custom_presets(self) -> List[PresetDescriptor]:
+    """Retrieves a list of custom presets.
+
+    :rtype: List[PresetDescriptor]
+    
+    """
     await self.__cache_all_presets()
     return self.__custom_preset_descriptors
 
   async def get_standard_presets(self) -> List[PresetDescriptor]:
+    """Retrieves a list of standard presets.
+
+    :rtype: List[PresetDescriptor]
+    
+    """
     await self.__cache_all_presets()
     return self.__standard_preset_descriptors
     
   async def get_queries_by_family(self, family_name : str) -> List[QueryDescriptor]:
+    """Obtain a list of queries by query family name.
+
+    :param family_name: A query family name appropriate for the engine type.
+    :type family_name: str
+    
+    :rtype: List[QueryDescriptor]
+    """
     await self.__preload()
     await self.__populate_family_query_descriptor_cache(family_name)
     return self.__family_standard_query_descriptor_lists[family_name] + \
       self. __family_custom_query_descriptor_lists[family_name]
 
   async def get_standard_queries_by_family(self, family_name : str) -> List[QueryDescriptor]:
+    """Obtain a list of standard queries by query family name.
+
+    :param family_name: A query family name appropriate for the engine type.
+    :type family_name: str
+    
+    :rtype: List[QueryDescriptor]
+    """
     await self.__preload()
     await self.__populate_family_query_descriptor_cache(family_name)
     return self.__family_standard_query_descriptor_lists[family_name]
 
   async def get_custom_queries_by_family(self, family_name : str) -> List[QueryDescriptor]:
+    """Obtain a list of custom queries by query family name.
+
+    :param family_name: A query family name appropriate for the engine type.
+    :type family_name: str
+    
+    :rtype: List[QueryDescriptor]
+    """
     await self.__preload()
     await self.__populate_family_query_descriptor_cache(family_name)
     return self.__family_custom_query_descriptor_lists[family_name]
   
   async def get_query_families(self) -> List[str]:
+    """Obtain a list of query family names appropriate for the engine.
+
+    :rtype: List[str]
+    """
     async with self.__family_lock:
       if len(self.__family_list) == 0:
         self.__family_list = json_on_ok(await retrieve_list_of_query_families(self.__client, self.__engine.value))

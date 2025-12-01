@@ -18,6 +18,7 @@ class BaseConfigurationCategory:
 class ConfigurationPropertyHandler:
 
   def __init__(self, handler : CxOneConfigElementHandler, prop_key : str, value_type : Union[Type, RestListEnum]):
+    """A class to manage a scan configuration property by key value."""
     self.__handler = handler
     self.__key = prop_key
     self.__value_type = value_type
@@ -45,6 +46,7 @@ class ConfigurationPropertyHandler:
   
 
   async def setValue(self, value : Any) -> None:
+    """Sets and type-checks the value of a configuration."""
     if isinstance(self.__value_type, RestListEnum):
       if not await self.__value_type.is_valid(value):
         raise ConfigurationException.not_in_enum(value, await self.__value_type.get_enum())
@@ -55,12 +57,15 @@ class ConfigurationPropertyHandler:
     await self.__handler._set_value(self.__key, self.__convert_to(value))
 
   async def getValue(self) -> Any:
+    """Retrieves the value of a configuration."""
     return self.__convert_from(await self.__handler._get_value(self.__key))
 
   async def setOverride(self, value : bool) -> None:
+    """Sets the override flag of a configuration value."""
     await self.__handler._set_override(self.__key, value)
 
   async def getOverride(self) -> bool:
+    """Retrieves the override flag of a configuration value."""
     return await self.__handler._get_override(self.__key)
 
   async def reset(self) -> None:
@@ -68,6 +73,7 @@ class ConfigurationPropertyHandler:
 
 
 class SastPresetType(RestListEnum):
+  """A class to manage configurations that can be set to a SAST preset value."""
 
   def __init__(self, retrieve_lambda : Awaitable[List[str]]):
     super().__init__()
@@ -84,6 +90,7 @@ class SastPresetType(RestListEnum):
 
 
 class SastScanConfig(BaseConfigurationCategory):
+  """A class that manages a SAST scan configuration."""
   def __init__(self, container : CxOneConfigElementHandler):
     super().__init__(container)
     self.__fastscan = ConfigurationPropertyHandler(self._config, "scan.config.sast.fastScanMode", bool)
@@ -134,6 +141,7 @@ class SastScanConfig(BaseConfigurationCategory):
     return self.__mode
 
 class ScaScanConfig(BaseConfigurationCategory):
+  """A class that manages an SCA scan configuration."""
   def __init__(self, container : CxOneConfigElementHandler):
     super().__init__(container)
     self.__exclusions = ConfigurationPropertyHandler(self._config, "scan.config.sca.filter", str)
@@ -158,6 +166,7 @@ class ScaScanConfig(BaseConfigurationCategory):
     return self.__exp_path_days
 
 class ApiSecurityScanConfig(BaseConfigurationCategory):
+  """A class that manages an APISec scan configuration."""
   def __init__(self, container : CxOneConfigElementHandler):
     super().__init__(container)
     self.__exclusions = ConfigurationPropertyHandler(self._config, "scan.config.apisec.swaggerFilter", str)
@@ -167,6 +176,7 @@ class ApiSecurityScanConfig(BaseConfigurationCategory):
     return self.__exclusions
 
 class ContainerScanConfig(BaseConfigurationCategory):
+  """A class that manages a Container Security scan configuration."""
   def __init__(self, container : CxOneConfigElementHandler):
     super().__init__(container)
     self.__exclusions = ConfigurationPropertyHandler(self._config, "scan.config.containers.filesFilter", str)
