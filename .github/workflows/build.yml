@@ -31,7 +31,7 @@ jobs:
           ls -lh docs_build/latex
 
       - name: Upload apidoc pdf artifact
-        # if: ${{ ! inputs.buildonly }}
+        if: ${{ ! inputs.buildonly }}
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
         with:
           name: apidoc-pdf-${{ github.run_number }}
@@ -80,13 +80,10 @@ jobs:
           echo '```' >> release.md
 
       - name: Download apidoc pdf artifact
+        if: ${{ ! inputs.buildonly }}
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
         with:
           name: apidoc-pdf-${{ github.run_number }}
-
-      - name: TEST
-        run: |
-          ls -lh
 
       - name: Create GitHub release
         if: ${{ ! inputs.buildonly }}
