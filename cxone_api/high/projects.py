@@ -4,7 +4,7 @@ from cxone_api import CxOneClient
 from cxone_api.low.projects import retrieve_last_scan, retrieve_project_info
 from cxone_api.low.scan_configuration import retrieve_project_configuration
 from cxone_api.low.repos_manager import get_scm_by_id, retrieve_repo_by_id
-from typing import List, Self
+from typing import List
 
 
 class ProjectRepoConfig:
@@ -19,7 +19,7 @@ class ProjectRepoConfig:
         self.__lock = asyncio.Lock()
 
     @staticmethod
-    async def from_project_json(cxone_client: CxOneClient, json: dict) -> Self:
+    async def from_project_json(cxone_client: CxOneClient, json: dict):
         """A factory method to create an instance from the JSON retrieved with the retrieve_project_info API.
 
            :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One
@@ -38,7 +38,7 @@ class ProjectRepoConfig:
         return retval
 
     @staticmethod
-    async def from_project_id(cxone_client: CxOneClient, project_id: str) -> Self:
+    async def from_project_id(cxone_client: CxOneClient, project_id: str):
         """A factory method to create an instance using the project ID.
 
             :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One.
