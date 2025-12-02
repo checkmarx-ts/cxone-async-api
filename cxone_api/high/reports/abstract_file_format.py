@@ -12,6 +12,18 @@ class AbstractReportFileFormat:
   __SLEEP_INCREMENT_SECONDS = 1
 
   def __init__(self, file_format : str, content_type : AbstractReportRequest, timeout_seconds : int):
+    """Using the constructor is not necessary; the subclass will implement a static method that calls the constructor.
+    
+    :param file_format: The name of the file format sent to the API.  This is usually provided by the implementation.
+    :type file_format: str
+
+    :param content_type: The requested type of report content.
+    :type content_type: AbstractReportRequest
+
+    :param timeout_seconds: The number of seconds to wait for the server to generate a report before raising an exception.
+    :type timeout_seconds: int
+    
+    """
     self.__format = file_format
     self.__content = content_type
     self.__timeout = timeout_seconds
