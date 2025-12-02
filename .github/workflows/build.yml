@@ -13,7 +13,23 @@ on:
         default: false
 
 jobs:
+  build-api-docs:
+    runs-on: ubuntu-latest
+    container: sphinxdoc/sphinx-latexpdf:8.2.3
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        with:
+          ref: ${{ inputs.version }}
+
+      - name: Build PDF
+        run: |
+          pip install sphinx-autoapi
+          sphinx-build -M latexpdf docs docs_build
+          ls -lh docs_build/latex
+
   create-release:
+    needs: [build-api-docs]
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Code
