@@ -24,9 +24,8 @@ jobs:
 
       - name: Build PDF
         run: |
-          pip install sphinx-autoapi
-          pwd
-          ls -l
+          echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
+          pip install sphinx-autoapi .
           sphinx-build -M latexpdf docs docs_build
           ls -lh docs_build/latex
 
