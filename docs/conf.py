@@ -24,7 +24,7 @@ autoapi_member_order="alphabetical"
 autoapi_options=['members','inherited-members','undoc-members','show-inheritance']
 autoapi_ignore=["*exceptions*", "cxone_api/__version__.py"]
 autoapi_python_class_content='both'
-maximum_signature_line_length=40
+maximum_signature_line_length=60
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']

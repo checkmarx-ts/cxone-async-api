@@ -6,6 +6,7 @@ from cxone_api import CxOneClient
 from cxone_api.low.preset_management.presets import retrieve_list_of_presets, retrieve_list_of_queries_in_a_preset
 from cxone_api.low.preset_management.queries import retrieve_list_of_queries_in_a_family, retrieve_list_of_query_families
 from cxone_api.util import json_on_ok
+from cxone_api.high.exceptions import NameNotFoundException
 
 
 class PresetEngine(enum.Enum):
@@ -41,16 +42,6 @@ class PresetDescriptor:
   Custom : bool
   QueryFamilies : List[PresetQueryFamilyDescriptor]
   
-
-class NameNotFoundException(Exception):
-  @property
-  def name(self) -> str:
-    return self.__name
-  
-  def __init__(self, name : str):
-    super().__init__(f"Unknown: {name}")
-    self.__name = name
-
 
 class PresetReader:
   def __init__(self, client : CxOneClient, engine : PresetEngine):
