@@ -25,6 +25,8 @@ jobs:
       - name: Build PDF
         run: |
           pip install sphinx-autoapi
+          pwd
+          ls -l
           sphinx-build -M latexpdf docs docs_build
           ls -lh docs_build/latex
 
