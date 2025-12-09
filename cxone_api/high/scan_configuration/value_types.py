@@ -3,6 +3,7 @@ from typing import List
 
 
 class ScanLanguageMode(Enum):
+  """An enumeration that indicates a scan language handling mode."""
   PRIMARY = "primary"
   MULTI = "multi"
 

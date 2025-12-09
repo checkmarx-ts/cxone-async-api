@@ -1,12 +1,9 @@
 import re
 from typing import Type, Any, List
 
-class EndpointException(BaseException):
-    pass
+class EndpointException(BaseException):...
 
-
-class AuthException(BaseException):
-    pass
+class AuthException(BaseException):...
     
 class CommunicationException(BaseException):
 
@@ -31,11 +28,9 @@ class CommunicationException(BaseException):
             f"[{CommunicationException.__clean(args)}]"
             f" kwargs: [{CommunicationException.__clean(kwargs)}]")
 
-class ResponseException(BaseException):
-    pass
+class ResponseException(BaseException):...
 
-class ScanException(BaseException):
-    pass
+class ScanException(BaseException):...
 
 class ConfigurationException(BaseException):
 

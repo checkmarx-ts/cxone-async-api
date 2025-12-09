@@ -13,6 +13,7 @@ class CxOneConfigElementHandler:
 
   @property
   def client(self) -> CxOneClient:
+    """The client used with this instance of the class."""
     return self.__client
 
   async def _load_config(self) -> List[Dict]:
@@ -25,6 +26,7 @@ class CxOneConfigElementHandler:
     raise NotImplementedError("_write_deletes")
 
   async def commit_config(self) -> None:
+    """Writes scan configuration changes at the scope of the class implementation."""
     async with self.__lock:
       if len(self.__delete) > 0:
         await self._write_deletes([self.__data[i]['key'] for i in self.__delete])

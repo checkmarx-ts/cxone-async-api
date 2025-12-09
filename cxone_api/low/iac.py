@@ -5,6 +5,7 @@ from requests.compat import urljoin
 
 @dashargs("apply-predicates", "source-file")
 async def retrieve_iac_security_scan_results(client : CxOneClient, scan_id : str, **kwargs) -> requests.Response:
+    """|LowLevelApiDocstring|"""
     url = urljoin(client.api_endpoint, f"kics-results")
     q = dict(kwargs)
     q["scan-id"] =  scan_id
