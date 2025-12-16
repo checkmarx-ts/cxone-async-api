@@ -127,8 +127,11 @@ class ProjectRepoConfig:
                     # if only one protected branch is specified.
                     if ("isDefaultBranch" in b.keys() and bool(b['isDefaultBranch'])) \
                             or len(cfg['branches']) == 1:
-                        if "name" in b.keys():
-                            return b['name']
+                        # December 2025: The element name changed from "name" to "pattern"
+                        # which broke everything that needs to know the default branch.
+                        # There is currently no UI support for specifying a branch name pattern, 
+                        # so this will probably break in the future.
+                        return b.get("name", b.get("pattern", ""))
         return ""
 
     async def __get_logical_repo_url(self):
