@@ -2,9 +2,10 @@ import asyncio
 from cxone_api.util import CloneUrlParser, json_on_ok
 from cxone_api import CxOneClient
 from cxone_api.low.projects import retrieve_last_scan, retrieve_project_info
+from cxone_api.low.scans import retrieve_scan_details
 from cxone_api.low.scan_configuration import retrieve_project_configuration
 from cxone_api.low.repos_manager import get_scm_by_id, retrieve_repo_by_id
-from typing import List
+from typing import List, Dict
 
 
 class ProjectRepoConfig:
@@ -249,6 +250,49 @@ class ProjectRepoConfig:
         """The project ID."""
         return self.__project_data['id']
 
+
+    async def get_default_engine_configuration(self, by_branch: str) -> List[Dict]:
+        """Retrieves a list of engine configurations based on the project's config or last scan.
+
+            The returned list of dictionaries can be modified or used as-is as engine configs
+            provided to the run_a_scan API.
+            
+            If the project was created as a code repository import, this returns a list of
+            configuration dictionaries for scan engines as set in the code repository
+            configuration for the project.
+
+            If the project is a manual scan project, this returns a list of
+            configuration dictionaries for engines used in the latest scan for the specified branch.  
+            
+            If neither method described above can yield any engine configurations, and empty list is returned.
+
+            :param by_branch: The name of the branch used to retrieve the last scan.
+            :type by_branch: str
+
+            :rtype: List[Dict]
+
+        """
+
+        config = []
+
+        scanners = await self.get_enabled_scanners(by_branch)
+
+        regular_engines = [engine for engine in scanners if engine not in ProjectRepoConfig.__MICROENGINES]
+        micro_engines = [engine for engine in scanners if engine in ProjectRepoConfig.__MICROENGINES]
+
+        for eng in regular_engines:
+            config.append({ "type" : eng, "value" : {} })
+
+        if len(micro_engines) > 0:
+            micro_engine_cfg = {"type" : "microengines", "value" : {m_eng_name : "false" for m_eng_name in ProjectRepoConfig.__MICROENGINES}}
+            config.append(micro_engine_cfg)
+
+            for eng in micro_engines:
+                micro_engine_cfg['value'][eng] = "true"
+
+        return config
+
+
     async def get_enabled_scanners(self, by_branch: str) -> List[str]:
         """Retrieves the scanners that have been selected for scanning, if any.
 
@@ -258,6 +302,12 @@ class ProjectRepoConfig:
             If the project is a manual scan project, the list of engines used in the latest
             scan for the specified branch are returned.  If no scans are found in the project
             for the specified branch, an empty list is returned.
+
+            The names returned match those that are used in the run_a_scan API to indicate
+            which engines to execute a scan.  Note that requesting microengines like
+            2ms and scorecard are under the "microengines" configuration key in the
+            scan configuration payload.  While the engine names are correct, additional
+            steps are needed to form the scan configuration.
 
             :param by_branch: The name of the branch used to retrieve the last scan.
             :type by_branch: str
@@ -271,9 +321,11 @@ class ProjectRepoConfig:
             # Use the engine configuration on the import
             cfg = await self.__get_repomgr_config()
 
+
             for k in cfg.keys():
-                if k.lower().endswith("scannerenabled") and bool(cfg[k]):
-                    engines.append(k.lower().removesuffix("scannerenabled"))
+                if k in ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP.keys():
+                    if bool(cfg[k]):
+                        engines.append(ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP[k])
 
         if len(engines) == 0:
             # If no engines configured by the import config, use the engines for the last scan.
@@ -283,4 +335,28 @@ class ProjectRepoConfig:
                 if 'engines' in latest_scan_header.keys():
                     engines = latest_scan_header['engines']
 
+                # Replace the microengines with the engine names
+                if "microengines" in engines:
+                    engines.remove("microengines")
+                    scan_details = json_on_ok(await retrieve_scan_details(self.__client, latest_scan_header['id']))
+                    if "metadata" in scan_details.keys() and "configs" in scan_details['metadata'].keys():
+                        for engine_cfg in scan_details['metadata']['configs']:
+                            engine_type = engine_cfg.get("type", None)
+                            if engine_type is not None and engine_type == "microengines":
+                                for micro_name in engine_cfg['value'].keys():
+                                    if engine_cfg['value'][micro_name].lower() == "true":
+                                        engines.append(micro_name)
+
         return engines
+    
+    __CODE_REPO_ENABLE_NAME_MAP = {
+        "sastScannerEnabled" : "sast",
+        "scaScannerEnabled" : "sca",
+        "kicsScannerEnabled" : "kics",
+        "apiSecScannerEnabled" : "apisec",
+        "containerScannerEnabled" : "containers",
+        "ossfScoreCardScannerEnabled" : "scorecard",
+        "secretsDetectionScannerEnabled" : "2ms"
+    }
+
+    __MICROENGINES = ["2ms", "scorecard"]
