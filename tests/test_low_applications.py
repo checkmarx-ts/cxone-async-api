@@ -4,29 +4,33 @@ import cxone_api.low.applications as apps
 from cxone_api.exceptions import ResponseException
 from cxone_api.util import page_generator, json_on_ok
 from tests import BaseTest
+from asyncio import Lock
 
 
 class TestLowApplications(BaseTest):
 
     DEFAULT_APP_NAME = "DELETE_ME_APP"
 
-    async def asyncSetUp(self):
-        self.__delete_app_names = []
-        
-        apps_resp = await apps.retrieve_applications_info(self.client_oauth, 
-                        name=TestLowApplications.DEFAULT_APP_NAME)
+    __lock = Lock()
 
-        if apps_resp.ok and len(apps_resp.json()['applications']) == 0:
-            app_create_resp = await apps.create_an_application(self.client_oauth,
-                                name=TestLowApplications.DEFAULT_APP_NAME,
-                                description="regression testing purposes")
-            if app_create_resp.ok:
-                self.__appid = app_create_resp.json()['id']
+    async def asyncSetUp(self):
+        async with TestLowApplications.__lock:
+            self.__delete_app_names = []
+            
+            apps_resp = await apps.retrieve_applications_info(self.client_oauth, 
+                            name=TestLowApplications.DEFAULT_APP_NAME)
+
+            if apps_resp.ok and len(apps_resp.json()['applications']) == 0:
+                app_create_resp = await apps.create_an_application(self.client_oauth,
+                                    name=TestLowApplications.DEFAULT_APP_NAME,
+                                    description="regression testing purposes")
+                if app_create_resp.ok:
+                    self.__appid = app_create_resp.json()['id']
+                else:
+                    raise ResponseException("Unknown response creating an application:" \
+                            f"{app_create_resp}")
             else:
-                raise ResponseException("Unknown response creating an application:" \
-                        f"{app_create_resp}")
-        else:
-            self.__appid = apps_resp.json()['applications'][0]['id']
+                self.__appid = apps_resp.json()['applications'][0]['id']
 
 
 
