@@ -9,7 +9,7 @@ from cxone_api.__version__ import __version__
 
 project = 'cxone-async-api'
 copyright = '2025, Checkmarx'
-author = 'Nathan Leach, OSCP, CSSLP, Principal Solutions Architect'
+author = 'Nathan Leach, OSCP, CSSLP, Staff Solutions Architect'
 release = __version__
 
 # -- General configuration ---------------------------------------------------
