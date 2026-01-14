@@ -189,7 +189,7 @@ class CxOneClient:
         if exception is not None:
             log.exception(exception)
 
-        if (response is not None and response.status_code in [500, 502, 503]) or exception is not None:
+        if (response is not None and response.status_code in [500, 502, 503, 504]) or exception is not None:
             if try_attempt < self.__retries - 1:
                 msg = ""
 
