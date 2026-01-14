@@ -82,7 +82,7 @@ class PolicyViolationInspector:
       if self.__violations is None:
         data = json_on_ok(await retrieve_policy_violation_info(self.__client, self.projectid, self.scanid))
         
-        if not data.get("status", "") == "COMPLETED":
+        if not data.get("status", "") in ["COMPLETED", "NONE"]:
           raise PolicyEvaluationIncomplete(self.projectid, self.scanid)
         
         self.__break_build = data.get("breakBuild", False)
