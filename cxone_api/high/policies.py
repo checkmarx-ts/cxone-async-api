@@ -1,10 +1,11 @@
-from cxone_api.low.policy_management import retrieve_policy_violation_info
+from cxone_api.low.policy_management import retrieve_policy_violation_info, retrieve_all_policies
 from cxone_api.high.scans import ScanInspector
 from cxone_api import CxOneClient
-from cxone_api.util import json_on_ok
+from cxone_api.util import json_on_ok, page_generator
 import asyncio
 from typing import List
 from dataclasses import dataclass
+from jsonpath_ng.ext import parse
 
 
 class PolicyEvaluationIncomplete(Exception):
@@ -21,12 +22,21 @@ class PolicyViolationDescriptor:
   ViolatedPolicies : List[str]
 
 
+@dataclass(frozen=True)
+class PolicyViolationDescriptor:
+  """A class that describes policy violations."""
+  PolicyName : str
+  BreakBuild : bool
+  ViolatedRules : List[str]
+
 class PolicyViolationInspector:
   """A class used to inspect policy violations for a scan.
 
     Create an instance using the static factory methods.
   
   """
+
+  __assigned_projects_query = parse("$.projects[*].astProjectId")
 
   @staticmethod
   def from_scan_inspector(client : CxOneClient, inspector : ScanInspector):
@@ -37,6 +47,9 @@ class PolicyViolationInspector:
 
         :param inspector: A ScanInspector instance.
         :type inspector: ScanInspector
+
+        :param allow_incomplete_evaluation: A boolean value indicating if incomplete evaluation will be considered the same as complete evaluation.
+        :type allow_incomplete_evaluation: bool,optional
 
         :rtype: PolicyViolationInspector
     """
@@ -65,6 +78,8 @@ class PolicyViolationInspector:
     inst.__violations = None
     inst.__break_build = False
     inst.__has_violations = False
+    inst.__initialized = False
+
     return inst
 
   @property
@@ -79,10 +94,28 @@ class PolicyViolationInspector:
   
   async def __load_violations(self):
     async with self.__lock:
-      if self.__violations is None:
+      if self.__violations is None and not self.__initialized:
         data = json_on_ok(await retrieve_policy_violation_info(self.__client, self.projectid, self.scanid))
-        
-        if not data.get("status", "") in ["COMPLETED", "NONE"]:
+
+        if data.get("status", "NONE") == "NONE":
+          # Two cases can yield NONE:
+          # * no policies apply to the project
+          # * the policy evaluation has not yet started after the scan
+          #
+          # If there is a default policy or if any policy has this project assigned, NONE needs to throw an incomplete exception.
+          # Otherwise there is no build break since there are no policies to enforce.
+          async for single_policy in page_generator(retrieve_all_policies, "policies", "page", offset_init_value=1, offset_is_by_count=False, client=self.__client):
+            if single_policy.get("defaultPolicy", False):
+              # A default policy exists but it is likely that the policy evaluation has not started.
+              raise PolicyEvaluationIncomplete(self.projectid, self.scanid)
+
+            assigned_projects = [x.value for x in PolicyViolationInspector.__assigned_projects_query.find(single_policy)]
+
+            if self.projectid in assigned_projects:
+              # This project is assigned to at least one policy so the evaluation must be COMPLETE
+              raise PolicyEvaluationIncomplete(self.projectid, self.scanid)
+
+        elif not data.get("status", "") == "COMPLETED":
           raise PolicyEvaluationIncomplete(self.projectid, self.scanid)
         
         self.__break_build = data.get("breakBuild", False)
@@ -92,11 +125,13 @@ class PolicyViolationInspector:
           for evaluated in policy_array:
             if evaluated.get("status", "") == "FAILED":
               self.__has_violations = True
-              violation_descriptor = PolicyViolationDescriptor(evaluated['policyName'], evaluated['rulesViolated'])
+              violation_descriptor = PolicyViolationDescriptor(evaluated['policyName'], evaluated['breakBuild'], evaluated['rulesViolated'])
               if self.__violations is None:
                 self.__violations = [violation_descriptor]
               else:
                 self.__violations.append(violation_descriptor)
+        
+        self.__initialized = True
         
   
   @property
