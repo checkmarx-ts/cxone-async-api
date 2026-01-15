@@ -15,12 +15,6 @@ class PolicyEvaluationIncomplete(Exception):
     """
     super().__init__(f"Policy evaluation is not yet complete for scan id {scanid} in project id {projectid}")
 
-@dataclass(frozen=True)
-class PolicyViolationDescriptor:
-  """A class that describes policy violations."""
-  PolicyName : str
-  ViolatedPolicies : List[str]
-
 
 @dataclass(frozen=True)
 class PolicyViolationDescriptor:
