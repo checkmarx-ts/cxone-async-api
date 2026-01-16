@@ -233,7 +233,7 @@ async def page_generator(coro : Coroutine, array_element : str = None, offset_pa
                     _log.debug(f"Abort after {retries} retries", ex)
                     raise
 
-        yield buf.pop()
+        yield buf.pop(0)
 
 
 def join_query_dict(url, querydict) -> str:
