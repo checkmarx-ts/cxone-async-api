@@ -69,7 +69,7 @@ class AbstractReportFileFormat:
       status_response = json_on_ok(await retrieve_report_status(self.__content.client, report_id))
       
       if status_response['status'] == "failed":
-        raise ReportException.report_gen_fail()
+        raise ReportException.report_gen_fail(self.__content.data)
       elif status_response['status'] == "completed":
         timed_out = False
         break
@@ -77,7 +77,7 @@ class AbstractReportFileFormat:
       sleep += AbstractReportFileFormat.__SLEEP_INCREMENT_SECONDS
     
     if timed_out:
-      raise ReportException.report_gen_timeout()
+      raise ReportException.report_gen_timeout(self.__content.data)
 
 
     return await self._download(status_response['url'])
