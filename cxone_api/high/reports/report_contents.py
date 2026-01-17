@@ -41,8 +41,8 @@ class AbstractScanReport(AbstractReportRequest):
     self.__scan_id = scan_id
     self.__project_id = project_id
     self.__branch = branch_name
-    self.__sections = None if sections is None or len(sections) > 0 else [x.value for x in sections]
-    self.__scanners = None if scanners is None or len(scanners) > 0 else [x.value for x in scanners]
+    self.__sections = None if sections is None or len(sections) == 0 else [x.value for x in sections]
+    self.__scanners = None if scanners is None or len(scanners) == 0 else [x.value for x in scanners]
 
   @property
   def data(self) -> Dict:
