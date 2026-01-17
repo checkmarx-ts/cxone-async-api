@@ -62,6 +62,7 @@ class AbstractReportFileFormat:
 
     start = perf_counter()
     sleep = AbstractReportFileFormat.__SLEEP_INCREMENT_SECONDS
+    timed_out = True
     while perf_counter() - start < self.__timeout:
       await asyncio.sleep(min(sleep, AbstractReportFileFormat.__SLEEP_MAX_SECONDS))
 
@@ -70,9 +71,14 @@ class AbstractReportFileFormat:
       if status_response['status'] == "failed":
         raise ReportException.report_gen_fail()
       elif status_response['status'] == "completed":
+        timed_out = False
         break
       
       sleep += AbstractReportFileFormat.__SLEEP_INCREMENT_SECONDS
+    
+    if timed_out:
+      raise ReportException.report_gen_timeout()
+
 
     return await self._download(status_response['url'])
 

@@ -2,14 +2,15 @@ from cxone_api.client import CxOneClient
 from cxone_api.high.reports.abstract_report import AbstractReportRequest
 from enum import Enum
 from typing import List, Dict, Union
+from aenum import MultiValueEnum
 
-class Scanners(Enum):
+class Scanners(MultiValueEnum):
   """An enumeration of types of scan engines."""
-  SAST = "sast"
-  SCA = "sca"
-  KICS = "kics"
-  CONTAINERS = "containers"
-  MICROENGINES = "microengines"
+  SAST = "SAST", "sast"
+  SCA = "SCA", "sca"
+  KICS = "KICS", "kics"
+  CONTAINERS = "Containers", "containers"
+  MICROENGINES = "Microengines", "microengines"
 
 
 class AbstractScanReport(AbstractReportRequest):

@@ -16,3 +16,7 @@ class ReportException(Exception):
   @staticmethod
   def report_download_fail(url : str):
     return ReportException(f"Failed to download report from: {url}")
+
+  @staticmethod
+  def report_gen_timeout():
+    return ReportException("The report generation has timed out.")

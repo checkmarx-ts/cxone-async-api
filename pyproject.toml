@@ -10,7 +10,8 @@ dependencies = [
     "jsonpath_ng==1.7.0",
     "validators==0.34.0",
     "dataclasses-json==0.6.7",
-    "deprecation==2.1.0"
+    "deprecation==2.1.0",
+    "aenum==3.1.15"
 ]
 description = "CheckmarxOne Async API"
 requires-python = ">=3.9"
