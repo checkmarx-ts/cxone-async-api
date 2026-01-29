@@ -23,7 +23,7 @@ async def retrieve_scan_details(client : CxOneClient, scanid : str) -> requests.
 async def cancel_a_scan(client : CxOneClient, scanid : str) -> requests.Response:
     """|LowLevelApiDocstring|"""
     url = urljoin(client.api_endpoint, f"scans/{scanid}")
-    return await client.exec_request(requests.patch, url)
+    return await client.exec_request(requests.patch, url, json={"status" : "Canceled"})
 
 async def delete_a_scan(client : CxOneClient, scanid : str) -> requests.Response:
     """|LowLevelApiDocstring|"""
