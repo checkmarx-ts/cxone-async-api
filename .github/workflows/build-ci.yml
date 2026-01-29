@@ -1,25 +1,13 @@
 name: CI Build Steps [called]
 on:
-  workflow_call:
-    secrets:
-      TEST_TENANT_ID:
-        required: true
-      TEST_REGION:
-        required: true
-      TEST_OAUTH_CLIENT_SECRET:
-        required: true
-      TEST_OAUTH_CLIENT_ID:
-        required: true
-      TEST_API_KEY:
-        required: true
   push:
 
 jobs:
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
     secrets:
-      TEST_TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
-      TEST_REGION: ${{ secrets.TEST_REGION }}
+      TEST_TENANT_ID: ${{ vars.TEST_TENANT_ID }}
+      TEST_REGION: ${{ vars.TEST_REGION }}
       TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
       TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
       TEST_API_KEY: ${{ secrets.TEST_API_KEY }}

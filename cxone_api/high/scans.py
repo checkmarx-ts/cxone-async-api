@@ -11,6 +11,7 @@ from ..low.scan_configuration import retrieve_tenant_configuration
 from ..low.uploads import generate_upload_link, upload_to_link
 from .projects import ProjectRepoConfig
 from enum import Enum
+from pathlib import Path
 import asyncio, logging, deprecation
 
 class ScanInvoker:
@@ -316,6 +317,52 @@ class ScanInvoker:
             submit_payload['handler']['credentials']['value'] = clone_cred_value
             submit_payload['handler']['credentials']['type'] = clone_cred_type.value
 
+        if scan_tags is not None:
+            submit_payload["tags"] = scan_tags
+
+        return await run_a_scan(client, submit_payload)
+
+
+    @staticmethod
+    async def scan_by_sbom_upload(client : CxOneClient, project_id : str, sbom_path : str, branch : str, 
+                                       scan_tags : dict = None) -> Response:
+        """Invokes an SBOM scan by uploading an SBOM file.  As of the writing of this, supported SBOMs are CycloneDX (v1.0-1.6) and SPDX (v2.3)
+        
+        :param client: The CxOneClient instance used to communicate with Checkmarx One
+        :type client: CxOneClient
+
+        :param project_id: The project ID where the scan will be invoked.
+        :type project_id: str
+
+        :param sbom_path: A path to a local SBOM file.
+        :type sbom_path: str or path-like
+
+        :param branch: The name of the branch used when performing the scan.
+        :type branch: str
+
+        :param scan_tags: A list of key/value pairs to use as scan tags.
+        :type scan_tags: Dict,optional
+
+        """
+
+        submit_payload = { "project" : {"id": project_id},
+                            "type" : "upload",
+                            "handler" : 
+                                { 
+                                    "uploadUrl" : await ScanInvoker.__upload_zip(client, sbom_path),
+                                    "branch" : "unknown" if branch is None else branch,
+                                    "uploadFormat" : "single",
+                                    "uploadName" : Path(sbom_path).name
+                                },
+                                "config" : [{
+                                    "type" : "sca",
+                                    "value" : {
+                                        "enableContainerScan" : "false",
+                                        "sbom" : "true"
+                                    }
+                                }]
+                         }
+        
         if scan_tags is not None:
             submit_payload["tags"] = scan_tags
 

@@ -1,8 +1,10 @@
 .env*
 
 examples/**.zip
-tutorial/**.zip
 docs_build
+
+# force commit the tutorial
+tutorial/*
 
 
 # Byte-compiled / optimized / DLL files

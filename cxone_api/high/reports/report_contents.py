@@ -2,14 +2,15 @@ from cxone_api.client import CxOneClient
 from cxone_api.high.reports.abstract_report import AbstractReportRequest
 from enum import Enum
 from typing import List, Dict, Union
+from aenum import MultiValueEnum
 
-class Scanners(Enum):
+class Scanners(MultiValueEnum):
   """An enumeration of types of scan engines."""
-  SAST = "sast"
-  SCA = "sca"
-  KICS = "kics"
-  CONTAINERS = "containers"
-  MICROENGINES = "microengines"
+  SAST = "SAST", "sast"
+  SCA = "SCA", "sca"
+  KICS = "KICS", "kics"
+  CONTAINERS = "Containers", "containers"
+  MICROENGINES = "Microengines", "microengines"
 
 
 class AbstractScanReport(AbstractReportRequest):
@@ -41,8 +42,8 @@ class AbstractScanReport(AbstractReportRequest):
     self.__scan_id = scan_id
     self.__project_id = project_id
     self.__branch = branch_name
-    self.__sections = None if sections is None or len(sections) > 0 else [x.value for x in sections]
-    self.__scanners = None if scanners is None or len(scanners) > 0 else [x.value for x in scanners]
+    self.__sections = None if sections is None or len(sections) == 0 else [x.value for x in sections]
+    self.__scanners = None if scanners is None or len(scanners) == 0 else [x.value for x in scanners]
 
   @property
   def data(self) -> Dict:

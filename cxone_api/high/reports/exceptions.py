@@ -1,3 +1,5 @@
+from typing import Dict
+
 class ReportConfigException(Exception):
   @staticmethod
   def email_list_required():
@@ -10,9 +12,13 @@ class ReportException(Exception):
     return ReportException(f"Error creating a report: {msg}")
   
   @staticmethod
-  def report_gen_fail():
-    return ReportException("Server has indicated report generation failed.")
+  def report_gen_fail(data : Dict):
+    return ReportException(f"Server has indicated report generation failed. Request data: {data}")
 
   @staticmethod
   def report_download_fail(url : str):
     return ReportException(f"Failed to download report from: {url}")
+
+  @staticmethod
+  def report_gen_timeout(data : Dict):
+    return ReportException(f"The report generation has timed out. Request data: {data}")

@@ -56,6 +56,9 @@ class TestLowProjects(BaseTest):
         result = json_on_ok(await self.__create_project(self.client_oauth))
         projid = result['id']
 
+        if len(result['groups']) == 0:
+            del result['groups']
+
         async def validate_proj_tag_in_list(response, client):
             found_tags = set(json_on_ok(response).keys())
             self.assertTrue(len([x for x in found_tags if x in ['foo', 'bar']]) > 0)
@@ -63,9 +66,9 @@ class TestLowProjects(BaseTest):
         result['tags'] = {"foo" : "bar", "bar" : ""}
 
         response = await projs.update_a_project(self.client_oauth, projid, **result)
+        self.assertTrue(response.ok)
 
         await self.execute_client_call(projs.retrieve_list_of_tags, validate_proj_tag_in_list)
-        self.assertTrue(response.ok)
 
     async def test_get_project_last_scan_no_scans(self):
         projid = json_on_ok(await self.__create_project(self.client_oauth))['id']
