@@ -8,7 +8,7 @@ from cxone_api.__version__ import __version__
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'cxone-async-api'
-copyright = '2025, Checkmarx'
+copyright = '2026, Checkmarx'
 author = 'Nathan Leach, OSCP, CSSLP, Staff Solutions Architect'
 release = __version__
 
