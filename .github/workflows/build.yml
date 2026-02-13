@@ -28,8 +28,7 @@ jobs:
           pip install sphinx-autoapi .
           PYTHONPATH=$(pwd) sphinx-build -M latexpdf -c docs . docs_build && : || :
           make -C docs_build
-          mv docs_build/latex/cxone-async-api.pdf docs_build/latex/cxone-async-api-${{ inputs.version }}.pdf
-          ls -lh docs_build/latex
+          mv docs_build/cxone-async-api.pdf docs_build/cxone-async-api-${{ inputs.version }}.pdf
 
       - name: Upload apidoc pdf artifact
         if: ${{ ! inputs.buildonly }}
