@@ -26,8 +26,7 @@ jobs:
         run: |
           echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
           pip install sphinx-autoapi .
-          PYTHONPATH=$(pwd) sphinx-build -M latexpdf -c docs . docs_build
-          make -C docs_build
+          PYTHONPATH=$(pwd) sphinx-build -M latexpdf -c docs . docs_build ; make -C docs_build
           mv docs_build/latex/cxone-async-api.pdf docs_build/latex/cxone-async-api-${{ inputs.version }}.pdf
           ls -lh docs_build/latex
 
