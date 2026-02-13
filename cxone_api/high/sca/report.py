@@ -1,7 +1,7 @@
 from cxone_api import CxOneClient
 from cxone_api.exceptions import ResponseException
 from cxone_api.util import json_on_ok
-from ..low.sca import request_scan_report, get_scan_report_status, retrieve_scan_report
+from ...low.sca import request_scan_report, get_scan_report_status, retrieve_scan_report
 import requests, enum
 from typing import List
 from dataclasses import dataclass, field

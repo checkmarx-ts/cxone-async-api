@@ -8,7 +8,7 @@ from cxone_api.__version__ import __version__
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'cxone-async-api'
-copyright = '2025, Checkmarx'
+copyright = '2026, Checkmarx'
 author = 'Nathan Leach, OSCP, CSSLP, Staff Solutions Architect'
 release = __version__
 
@@ -19,10 +19,13 @@ extensions = [
     'autoapi.extension'
 ]
 
-autoapi_dirs=["../cxone_api"]
+autoapi_dirs=["cxone_api"]
 autoapi_member_order="alphabetical"
 autoapi_options=['members','inherited-members','undoc-members','show-inheritance']
-autoapi_ignore=["*exceptions*", "cxone_api/__version__.py"]
+autoapi_ignore=["*exceptions*", 
+                "cxone_api/__version__.py",
+                "*cxone_api/high/sca/analysis/iterators.py"
+                ]
 autoapi_python_class_content='both'
 maximum_signature_line_length=60
 
