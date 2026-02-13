@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
         with:
           name: apidoc-pdf-${{ github.run_number }}
-          path: docs_build/latex/*.pdf          
+          path: docs_build/*.pdf          
 
   create-release:
     needs: [build-api-docs]
