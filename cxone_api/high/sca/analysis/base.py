@@ -1,6 +1,5 @@
 from cxone_api import CxOneClient
-from cxone_api.util import json_on_ok
-from typing import Dict
+from typing import Dict, List
 from requests.compat import urljoin
 from .iterators import where_iterator, ordered_iterator
 
