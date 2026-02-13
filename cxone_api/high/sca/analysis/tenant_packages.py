@@ -2,6 +2,7 @@ from .base import AbstractScaGQLOrderQuery
 
 
 class ScaTenantPackages(AbstractScaGQLOrderQuery):
+  """Retrieves a list of packages discovered in all scans for the CheckmarxOne tenant."""
 
   @property
   def _result_element(self) -> str:

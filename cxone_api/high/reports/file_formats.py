@@ -81,7 +81,7 @@ class JSONReport(AbstractReportFileFormat):
     :param content_type: The type of report to create.
     :type content_type: Union[ImprovedScanReport, LegacyScanReport, ProjectReport]
 
-    :param wait_timeout_seconds: The number of seconds to wait for the server to render the report.
+    :param wait_timeout_seconds: The number of seconds to wait for the server to render the report, defaults to 300.
     :type wait_timeout_seconds: int
 
     :raises ReportException: Raised when retrieval of a report fails for any reason.

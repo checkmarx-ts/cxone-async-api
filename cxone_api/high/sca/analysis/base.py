@@ -1,113 +1,62 @@
 from cxone_api import CxOneClient
 from cxone_api.util import json_on_ok
-from typing import Dict, List, Union
+from typing import Dict
 from requests.compat import urljoin
-from requests import post
-import asyncio
+from .iterators import where_iterator, ordered_iterator
 
 class ResultOrder:
+  """A class used to build GraphQL ordering directives."""
   def __init__(self):
     self.__ascending = []
     self.__descending = []
 
   def add_ascending(self, field_name : str) -> None:
+    """Adds a field name to sort in ascending order.
+    
+    :param field_name: The name of the field to be sorted.
+    :type field_name: str
+    """
     self.__ascending.append(field_name)
 
   def add_descending(self, field_name : str) -> None:
+    """Adds a field name to sort in descending order.
+    
+    :param field_name: The name of the field to be sorted.
+    :type field_name: str
+    """
     self.__descending.append(field_name)
 
-  def render(self) -> Dict:
+  def render(self) -> List[Dict]:
+    """Renders the GraphQL order structure.
+    
+    :return: Returns a list of dictionaries containing the sort order instructions.
+    :rtype: List[Dict]
+    """
     order = [{asc : "ASC"} for asc in self.__ascending] + [{desc : "DESC"} for desc in self.__descending]
     return order if len(order) > 0 else None
 
 
-class abstract_iterator:
-
-  def __init__(self, client : CxOneClient, api_url : str, query : str, element_name : str, page_size : int, page_retries_max : int = 5, page_retry_delay_s : int = 3):
-    self.__client = client
-    self.__url = api_url
-    self.__query = query
-    self.__elem = element_name
-    self.__page_size = page_size
-    self.__next_skip = 0
-    self.__max = 0
-    self.__retry = page_retries_max
-    self.__retry_delay = page_retry_delay_s
-    self.__cache = None
-
-  def _add_variables(self, to_dict : Dict) -> None:
-    raise NotImplementedError("_add_variables")
-
-  async def __anext__(self):
-    retries = self.__retry
-    if self.__cache is not None and len(self.__cache) == 0:
-
-      if self.__next_skip < self.__max:
-        raise StopAsyncIteration
-
-    if self.__cache is None or len(self.__cache) == 0:
-      while retries > 0:
-        try:
-          variables = {
-                  "take": self.__page_size, 
-                  "skip": self.__next_skip, 
-          }
-          self._add_variables(variables)
-
-          payload = {
-            "query" : self.__query,
-            "variables" : variables
-          }
-          
-          resp_json = json_on_ok(await self.__client.exec_request(post,
-                                                          url=self.__url,
-                                                          json=payload))
-
-          data = resp_json.get("data", None)
-          assert(data is not None)
-          self.__cache = data.get(self.__elem, None)
-          assert(self.__cache is not None)
-        except BaseException:
-          if retries > 0:
-              await asyncio.sleep(self.__retry_delay)
-              retries -= 1
-              if retries == 0:
-                raise
-              continue
-
-        if len(self.__cache) == 0:
-          raise StopAsyncIteration
-
-        break
-
-      self.__max += self.__page_size
-
-    self.__next_skip += 1
-    return self.__cache.pop(0)
-
-
-class where_iterator(abstract_iterator):
-  def __init__(self, where_dict : Dict, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    self.__where = where_dict
-
-  def _add_variables(self, to_dict : Dict) -> None:
-    to_dict['where'] = self.__where
-
-
-class ordered_iterator(where_iterator):
-  def __init__(self, order_list : List[Dict], *args, **kwargs):
-    super().__init__(*args, **kwargs)
-    self.__order = order_list
-
-  def _add_variables(self, to_dict : Dict) -> None:
-    super()._add_variables(to_dict)
-    to_dict['order'] = self.__order
 
 
 
 class AbstractScaGQLQuery:
+  """The abstract implementation for an SCA analysis query using GraphQL."""
+
   def __init__(self, client : CxOneClient, page_size : int = 500, page_retries_max : int = 5, page_retry_delay_s : int = 3):
+    """GraphQL query class instances function as asynchronous iterators.
+    
+    :param client: The CxOneClient instance used to communicate with Checkmarx One
+    :type client: CxOneClient
+    
+    :param page_size: The maximum number of results to retrieve with each API call, defaults to 500.
+    :type page_size: int
+
+    :param page_retries_max: The number of retries to attempt if there is an error when retrieving a page of data from the API, defaults to 5.
+    :type page_retries_max: int
+
+    :param page_retry_delay_s: The number of seconds to wait between each retry attempt, defaults to 3.
+    :type page_retry_delay_s: int
+    """
     self.__client = client
     self.__page_size = page_size
     self.__retries = page_retries_max
@@ -146,6 +95,7 @@ class AbstractScaGQLQuery:
   
 
 class AbstractScaGQLWhereQuery(AbstractScaGQLQuery):
+  """An SCA analysis GraphQL query that supports results filtering."""
 
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
@@ -153,10 +103,20 @@ class AbstractScaGQLWhereQuery(AbstractScaGQLQuery):
 
   @property
   def where(self) -> Dict:
+    """Returns the dictionary that defines the query filtering criteria.
+    
+    :return: A dictionary containing the query filtering criteria.
+    :rtype: Dict
+    """
     return self.__where
 
   @where.setter
   def where(self, where_tree : Dict) -> None:
+    """A property that is set to a dictionary containing the query filtering criteria.
+    
+    :param where_tree: A dictionary representing a boolean statement in the form of a logical tree.
+    :type where_tree: Dict
+    """
     self.__where = where_tree
 
   def __aiter__(self):
@@ -171,13 +131,17 @@ class AbstractScaGQLWhereQuery(AbstractScaGQLQuery):
 
 
 class AbstractScaGQLOrderQuery(AbstractScaGQLWhereQuery):
-
+  """An SCA analysis GraphQL query that supports both results filtering and ordering."""
   def __init__(self, *args, **kwargs):
     super().__init__(*args, **kwargs)
     self.__order = ResultOrder()
 
   @property
   def order(self) -> ResultOrder:
+    """Returns the object where fields can be set for result ordering.
+    
+    :rtype: ResultOrder
+    """
     return self.__order
 
   def __aiter__(self):

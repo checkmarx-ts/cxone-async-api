@@ -1,6 +1,7 @@
 from .base import AbstractScaGQLWhereQuery
 
 class ScaTenantRisks(AbstractScaGQLWhereQuery):
+  """Retrieves a list of open package risks for the CheckmarxOne tenant."""
   @property
   def _result_element(self) -> str:
     return "reportingRisks"

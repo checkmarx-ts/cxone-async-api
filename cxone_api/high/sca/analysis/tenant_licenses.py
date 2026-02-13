@@ -1,6 +1,9 @@
 from .base import AbstractScaGQLWhereQuery
 
 class ScaTenantLicenses(AbstractScaGQLWhereQuery):
+  """
+  Retrieves a list of licenses discovered in all scans for the CheckmarxOne tenant.
+  """
   @property
   def _result_element(self) -> str:
     return "reportingLicenses"
