@@ -2,6 +2,7 @@
 
 examples/**.zip
 docs_build
+**/doctrees
 
 # force commit the tutorial
 tutorial/*

@@ -19,7 +19,7 @@ extensions = [
     'autoapi.extension'
 ]
 
-autoapi_dirs=["../cxone_api"]
+autoapi_dirs=["cxone_api"]
 autoapi_member_order="alphabetical"
 autoapi_options=['members','inherited-members','undoc-members','show-inheritance']
 autoapi_ignore=["*exceptions*", "cxone_api/__version__.py"]
