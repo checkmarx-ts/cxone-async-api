@@ -66,7 +66,7 @@ jobs:
 
           python3 ./.github/workflows/scripts/json2md.py ./release-notes.json ${{ inputs.release_version }} >> release.md
 
-          echo '\n## Installation'
+          echo '\n\n## Installation' >> release.md
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
           WHEEL_NAME=$(basename $(ls dist/*.whl))
           WHEEL_HASH=$(pip3 hash dist/$WHEEL_NAME | grep "^--")
