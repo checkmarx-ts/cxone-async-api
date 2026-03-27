@@ -22,10 +22,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Check support of Python 3.9+
+      - name: Check support of Python 3.10+
         run: |
           pip3 install vermin
-          vermin -t=3.9 --backport asyncio --backport typing --no-tips .
+          vermin -t=3.10 --backport asyncio --backport typing --no-tips .
 
   execute-pylint:
     runs-on: ubuntu-latest
@@ -33,11 +33,11 @@ jobs:
       max-parallel: 3
       matrix:
         pver:
-          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
           - "3.13"
+          - "3.14"
     container: python:${{ matrix.pver }}
     steps:
       - name: Fetch Code

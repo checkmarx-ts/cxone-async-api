@@ -8,7 +8,7 @@ The library is organized into two parts:
 * A low-level API that is a very thin layer that helps with invocation of API endpoints via Requests.
 * A high-level API that has several composite workflows that hide the details of multiple low-level API invocations to perform common tasks.
 
-This requires Python 3.9 or greater.
+This requires Python 3.10 or greater.
 
 ## Quickstart
 

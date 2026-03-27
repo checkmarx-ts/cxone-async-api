@@ -14,7 +14,7 @@ dependencies = [
     "aenum==3.1.17"
 ]
 description = "CheckmarxOne Async API"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [tool.setuptools]
 package-dir = {"cxone_api" = "cxone_api"}
