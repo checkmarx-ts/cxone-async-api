@@ -20,11 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag-string.outputs.tag }}
+      release_version: ${{ steps.tag-string.outputs.release_version }}
     steps:
       - name: Create tag string
         run: |
           [ ${{ inputs.prerelease }} = false ] && echo "tag=${{ inputs.version }}" >> $GITHUB_OUTPUT || \
             echo "tag=${{ inputs.version }}rc$GITHUB_RUN_NUMBER" >> $GITHUB_OUTPUT
+
+          echo "release_version=${{ inputs.version }}" >> $GITHUB_OUTPUT
         id: tag-string
 
   validate-no-tag:
@@ -84,6 +87,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       version: ${{ needs.make-tag-string.outputs.tag }}
+      release_version: ${{ needs.make-tag-string.outputs.release_version }}
       prerelease: ${{ inputs.prerelease }}
 
   remove-tag-on-failure:
