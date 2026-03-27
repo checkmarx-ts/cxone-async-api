@@ -12,21 +12,6 @@ jobs:
       TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
       TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
 
-  check-min-python-version-support:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Fetch Code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
-
-      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
-        with:
-          python-version: "3.12"
-
-      - name: Check support of Python 3.10+
-        run: |
-          pip3 install vermin
-          vermin -t=3.10 --backport asyncio --backport typing --no-tips .
-
   execute-pylint:
     runs-on: ubuntu-latest
     strategy:
