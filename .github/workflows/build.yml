@@ -64,7 +64,7 @@ jobs:
         run: |
           echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
 
-          python3 ./.github/workflows/scripts/json2md.py ${{ inputs.release_version }} >> release.md
+          python3 ./.github/workflows/scripts/json2md.py ./release-notes.json ${{ inputs.release_version }} >> release.md
 
           echo '\n## Installation'
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
