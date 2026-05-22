@@ -17,9 +17,12 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   skip-unit-tests-coverage:
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     if: ${{ inputs.skip }}
     steps:
       - name: Dummy
@@ -27,7 +30,7 @@ jobs:
       
 
   execute-unit-tests-coverage:
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     if: ${{ ! inputs.skip }}
     env:
       TEST_TENANT_ID: ${{ vars.TEST_TENANT_ID }}
