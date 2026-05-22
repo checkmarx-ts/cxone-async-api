@@ -111,6 +111,5 @@ jobs:
     steps:
       - uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           name: |
             apidoc-pdf-${{ github.run_number }}
