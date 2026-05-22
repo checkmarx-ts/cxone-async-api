@@ -13,7 +13,7 @@ jobs:
       TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
 
   execute-pylint:
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     strategy:
       max-parallel: 3
       matrix:

@@ -17,8 +17,8 @@ on:
 
 jobs:
   build-api-docs:
-    runs-on: ubuntu-latest
-    container: sphinxdoc/sphinx-latexpdf:8.2.3
+    runs-on: cx-public-ubuntu-x64
+    container: sphinxdoc/sphinx-latexpdf:8.2.3@sha256:0fc72dace4e1b181721c8ccacfa7835d6824cb1619ba060f3940e4ac73bd911c
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -42,7 +42,7 @@ jobs:
 
   create-release:
     needs: [build-api-docs]
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -106,7 +106,7 @@ jobs:
           tag: ${{ inputs.version }}
 
   artifact-cleanup:
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     needs: [create-release]
     steps:
       - uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118
