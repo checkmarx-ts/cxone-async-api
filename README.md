@@ -34,10 +34,10 @@ the notebook server with the tutorial notebook mapped to the running container.
 
 ```bash
 
-TOKEN=$(date | md5sum -z | head -c 32) docker run --rm -p 8888:8888 \
--e JUPYTER_TOKEN=$TOKEN -e JUPYTER_ENABLE_LAB=yes -d \
--v $(pwd)/tutorial:/home/jovyan/work jupyter/datascience-notebook && \
-echo "Open the tutorial here: http://localhost:8888/lab?token=$TOKEN"
+export TOKEN=$(date | md5sum -z | head -c 32) && docker run --rm -p 8888:8888 \
+  -e JUPYTER_TOKEN=$TOKEN -e JUPYTER_ENABLE_LAB=yes -d \
+  -v $(pwd)/tutorial:/home/jovyan/work jupyter/datascience-notebook && \
+  echo "Open the tutorial here: http://localhost:8888/lab?token=$TOKEN"
 
 ```
 
