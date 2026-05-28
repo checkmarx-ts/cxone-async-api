@@ -8,17 +8,20 @@ on:
       prerelease:
         type: boolean
         default: false
+      release_version:
+        type: string
+        default: ''
       buildonly:
         type: boolean
         default: false
 
 jobs:
   build-api-docs:
-    runs-on: ubuntu-latest
-    container: sphinxdoc/sphinx-latexpdf:8.2.3
+    runs-on: cx-public-ubuntu-x64
+    container: sphinxdoc/sphinx-latexpdf:8.2.3@sha256:0fc72dace4e1b181721c8ccacfa7835d6824cb1619ba060f3940e4ac73bd911c
     steps:
       - name: Fetch Code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.version }}
 
@@ -39,14 +42,14 @@ jobs:
 
   create-release:
     needs: [build-api-docs]
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.version }}
 
-      - uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.12"
 
@@ -60,6 +63,10 @@ jobs:
         if: ${{ ! inputs.buildonly }} 
         run: |
           echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
+
+          python3 ./.github/workflows/scripts/json2md.py ./release-notes.json ${{ inputs.release_version }} >> release.md
+
+          echo '\n\n## Installation' >> release.md
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
           WHEEL_NAME=$(basename $(ls dist/*.whl))
           WHEEL_HASH=$(pip3 hash dist/$WHEEL_NAME | grep "^--")
@@ -88,7 +95,7 @@ jobs:
       - name: Create GitHub release
         if: ${{ ! inputs.buildonly }}
         id: create_release
-        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5
+        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
@@ -99,11 +106,10 @@ jobs:
           tag: ${{ inputs.version }}
 
   artifact-cleanup:
-    runs-on: ubuntu-latest
+    runs-on: cx-public-ubuntu-x64
     needs: [create-release]
     steps:
-      - uses: geekyeggo/delete-artifact@9d15d164b1dcd538ff1b1a2984bc2c0240986c3b
+      - uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           name: |
             apidoc-pdf-${{ github.run_number }}

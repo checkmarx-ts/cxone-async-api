@@ -8,7 +8,7 @@ The library is organized into two parts:
 * A low-level API that is a very thin layer that helps with invocation of API endpoints via Requests.
 * A high-level API that has several composite workflows that hide the details of multiple low-level API invocations to perform common tasks.
 
-This requires Python 3.9 or greater.
+The `cxone-async-api` requires Python 3.10 or greater.
 
 ## Quickstart
 
@@ -34,10 +34,10 @@ the notebook server with the tutorial notebook mapped to the running container.
 
 ```bash
 
-TOKEN=$(date | md5sum -z | head -c 32) docker run --rm -p 8888:8888 \
--e JUPYTER_TOKEN=$TOKEN -e JUPYTER_ENABLE_LAB=yes -d \
--v $(pwd)/tutorial:/home/jovyan/work jupyter/datascience-notebook && \
-echo "Open the tutorial here: http://localhost:8888/lab?token=$TOKEN"
+export TOKEN=$(date | md5sum -z | head -c 32) && docker run --rm -p 8888:8888 \
+  -e JUPYTER_TOKEN=$TOKEN -e JUPYTER_ENABLE_LAB=yes -d \
+  -v $(pwd)/tutorial:/home/jovyan/work jupyter/datascience-notebook && \
+  echo "Open the tutorial here: http://localhost:8888/lab?token=$TOKEN"
 
 ```
 

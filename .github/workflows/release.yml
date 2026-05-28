@@ -20,11 +20,14 @@ jobs:
     runs-on: cx-public-ubuntu-x64
     outputs:
       tag: ${{ steps.tag-string.outputs.tag }}
+      release_version: ${{ steps.tag-string.outputs.release_version }}
     steps:
       - name: Create tag string
         run: |
           [ ${{ inputs.prerelease }} = false ] && echo "tag=${{ inputs.version }}" >> $GITHUB_OUTPUT || \
             echo "tag=${{ inputs.version }}rc$GITHUB_RUN_NUMBER" >> $GITHUB_OUTPUT
+
+          echo "release_version=${{ inputs.version }}" >> $GITHUB_OUTPUT
         id: tag-string
 
   validate-no-tag:
@@ -33,7 +36,7 @@ jobs:
     steps:
       - name: Fetch Code
         continue-on-error: true
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: refs/tags/${{ needs.make-tag-string.outputs.tag }}
 
@@ -62,7 +65,7 @@ jobs:
       contents: write
     steps:
       - name: Fetch Code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         
       - name: Set Version
         if: ${{ inputs.version != '' }}
@@ -84,6 +87,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       version: ${{ needs.make-tag-string.outputs.tag }}
+      release_version: ${{ needs.make-tag-string.outputs.release_version }}
       prerelease: ${{ inputs.prerelease }}
 
   remove-tag-on-failure:
@@ -94,7 +98,7 @@ jobs:
     if: ${{ failure() && needs.create-tag.outputs.done }}
     steps:
       - name: Fetch Code
-        uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Remove CodeTag
         run: git push origin ':refs/tags/${{ needs.make-tag-string.outputs.tag }}'
