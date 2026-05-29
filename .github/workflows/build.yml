@@ -15,6 +15,9 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   build-api-docs:
     runs-on: cx-public-ubuntu-x64
@@ -41,6 +44,8 @@ jobs:
           path: docs_build/*.pdf          
 
   create-release:
+    permissions:
+      contents: write  # for ncipollo/release-action to create a release
     needs: [build-api-docs]
     runs-on: cx-public-ubuntu-x64
     steps:
@@ -95,7 +100,7 @@ jobs:
       - name: Create GitHub release
         if: ${{ ! inputs.buildonly }}
         id: create_release
-        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd
+        uses: step-security/release-action@a0d8e0f90f554c15366ca2c9046bf4090d24adbe # v1.21.0
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
