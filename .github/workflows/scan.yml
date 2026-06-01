@@ -32,8 +32,8 @@ jobs:
 
       - name: Setup Python Build Env
         run: |
-          pip3 install virtualenv
           pip3 config set global.index-url https://pypi.echohq.com
+          pip3 install virtualenv
 
       - name: Scan with CxOne++ Action
         id: cxscan
