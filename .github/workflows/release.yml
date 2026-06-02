@@ -102,6 +102,7 @@ jobs:
   publish-release:
     permissions:
       contents: write
+    runs-on: cx-public-ubuntu-x64
     needs: [build-package, build-api-docs]
     steps:
       - name: Download apidoc pdf artifact
