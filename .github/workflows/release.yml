@@ -65,15 +65,15 @@ jobs:
 
   build-api-docs:
     uses: ./.github/workflows/build-api-docs.yml
-    needs: [create-tag]
+    needs: [create-tag, make-tag-string]
     with:
-      version: ${{ inputs.version }}
+      version: ${{ needs.make-tag-string.outputs.tag }}
 
   build-package:
     uses: ./.github/workflows/build-wheel.yml
-    needs: [create-tag]
+    needs: [create-tag, make-tag-string]
     with:
-      version: ${{ inputs.version }}
+      version: ${{ needs.make-tag-string.outputs.tag }}
 
   create-tag:
     permissions:
@@ -176,7 +176,7 @@ jobs:
             wheel-${{ github.run_number }}
 
   remove-tag-on-failure:
-    needs: [create-tag, publish-release]
+    needs: [create-tag, publish-release, make-tag-string]
     runs-on: cx-public-ubuntu-x64
     permissions:
       contents: write
