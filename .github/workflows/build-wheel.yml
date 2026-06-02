@@ -17,9 +17,14 @@ jobs:
     runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
+        if: ${{ inputs.version == '' }}
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Fetch Code
+        if: ${{ inputs.version != '' }}
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: ${{ inputs.version }}
+          ref: refs/tags/${{ inputs.version }}
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
