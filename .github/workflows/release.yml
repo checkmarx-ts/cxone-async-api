@@ -20,6 +20,7 @@ permissions:
 
 jobs:
   make-tag-string:
+    if: ${{ inputs.version != '' }}
     runs-on: cx-public-ubuntu-x64
     outputs:
       tag: ${{ steps.tag-string.outputs.tag }}
@@ -34,6 +35,7 @@ jobs:
         id: tag-string
 
   validate-no-tag:
+    if: ${{ inputs.version != '' }}
     runs-on: cx-public-ubuntu-x64
     needs: [make-tag-string]
     steps:
@@ -49,9 +51,10 @@ jobs:
 
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
-    needs: [validate-no-tag]
+    needs: [create-tag]
     with:
       skip: ${{ inputs.skiputs }}
+      version: ${{ inputs.version }}
     secrets:
       TEST_TENANT_ID: ${{ vars.TEST_TENANT_ID }}
       TEST_REGION: ${{ vars.TEST_REGION }}
@@ -59,11 +62,25 @@ jobs:
       TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
       TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
 
+
+  build-api-docs:
+    uses: ./.github/workflows/build-api-docs.yml
+    needs: [create-tag]
+    with:
+      version: ${{ inputs.version }}
+
+  build-package:
+    uses: ./.github/workflows/build-wheel.yml
+    needs: [create-tag]
+    with:
+      version: ${{ inputs.version }}
+
   create-tag:
     permissions:
       contents: write
+    if: ${{ inputs.version != '' }}
     runs-on: cx-public-ubuntu-x64
-    needs: [make-tag-string, validate-no-tag]
+    needs: [validate-no-tag]
     outputs:
       done: ${{ steps.done_check.outputs.status }}
     steps:
@@ -71,7 +88,6 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         
       - name: Set Version
-        if: ${{ inputs.version != '' }}
         run: |
           git config --global user.email "${{ github.triggering_actor }}"
           git config --global user.name "${{ github.triggering_actor }}"
@@ -86,15 +102,79 @@ jobs:
   publish-release:
     permissions:
       contents: write
-    needs: [make-tag-string, create-tag, call-unit-tests-coverage]
-    uses: ./.github/workflows/build.yml
-    with:
-      version: ${{ needs.make-tag-string.outputs.tag }}
-      release_version: ${{ needs.make-tag-string.outputs.release_version }}
-      prerelease: ${{ inputs.prerelease }}
+    needs: [build-package, build-api-docs]
+    steps:
+      - name: Download apidoc pdf artifact
+        if: ${{ ! inputs.buildonly }}
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: apidoc-pdf-${{ github.run_number }}
+
+      - name: Download wheel artifact
+        if: ${{ ! inputs.buildonly }}
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: wheel-${{ github.run_number }}
+
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        refs: ${{ needs.make-tag-string.outputs.tag }}
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Make release text
+        run: |
+          echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
+
+          python3 ./.github/workflows/scripts/json2md.py ./release-notes.json ${{ needs.make-tag-string.outputs.release_version }} >> release.md
+
+          echo '\n\n## Installation' >> release.md
+          echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
+          WHEEL_NAME=$(basename $(ls dist/*.whl))
+          WHEEL_HASH=$(pip hash dist/$WHEEL_NAME | grep "^--")
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/$WHEEL_NAME"
+
+          echo '```' >> release.md
+          echo $RELEASE_URL >> release.md
+          echo '```' >> release.md
+
+          echo '```' >> release.md
+          echo "git+https://github.com/${{ github.repository }}.git@${{ inputs.version }}" >> release.md
+          echo '```' >> release.md
+
+          echo "## Hashes" >> release.md
+          echo "### $WHEEL_NAME" >> release.md
+          echo '```' >> release.md
+          echo "$WHEEL_HASH" >> release.md
+          echo '```' >> release.md
+
+
+      - name: Create GitHub release
+        id: create_release
+        uses: step-security/release-action@a0d8e0f90f554c15366ca2c9046bf4090d24adbe # v1.21.0
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: *.whl, *.pdf
+          bodyFile: release.md
+          name: ${{ inputs.version }}
+          prerelease: ${{ inputs.prerelease }}
+          tag: ${{ inputs.version }}
+
+  artifact-cleanup:
+    runs-on: cx-public-ubuntu-x64
+    needs: [publish-release]
+    steps:
+      - uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118
+        with:
+          name: |
+            apidoc-pdf-${{ github.run_number }}
+            wheel-${{ github.run_number }}
 
   remove-tag-on-failure:
-    needs: [make-tag-string, create-tag, publish-release]
+    needs: [create-tag, publish-release]
     runs-on: cx-public-ubuntu-x64
     permissions:
       contents: write
