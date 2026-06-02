@@ -38,10 +38,12 @@ jobs:
         with:
           python-version: '${{ matrix.pver }}'
 
+      - name: Configure Pip index
+        run: pip config set global.index-url https://pypi.echohq.com/simple
+
       - name: Install packages
         shell: bash
         run: |
-          pip config set global.index-url https://pypi.echohq.com/simple
           pip install . pylint
 
       - name: Pylint

@@ -25,6 +25,9 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Configure Pip index
+        run: pip config set global.index-url https://pypi.echohq.com/simple
+
       - name: Update version
         if: ${{ ! inputs.buildonly }}
         run: echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
