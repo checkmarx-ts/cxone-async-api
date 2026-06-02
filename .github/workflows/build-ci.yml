@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   call-unit-tests-coverage:
+    needs: [call-build-api-docs, call-build-package]
     uses: ./.github/workflows/coverage.yml
     secrets:
       TEST_TENANT_ID: ${{ vars.TEST_TENANT_ID }}
@@ -47,12 +48,6 @@ jobs:
         shell: bash
         run: |
           pylint --disable=all --enable=E,F --disable=E1121 --score=false cxone_api
-
-
-  # call-package-build:
-  #   uses: ./.github/workflows/build.yml
-  #   with:
-  #     buildonly: true
 
   call-build-api-docs:
     uses: ./.github/workflows/build-api-docs.yml
