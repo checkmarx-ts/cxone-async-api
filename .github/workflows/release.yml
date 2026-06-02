@@ -103,7 +103,7 @@ jobs:
     permissions:
       contents: write
     runs-on: cx-public-ubuntu-x64
-    needs: [build-package, build-api-docs]
+    needs: [build-package, build-api-docs, call-unit-tests-coverage]
     steps:
       - name: Download apidoc pdf artifact
         if: ${{ ! inputs.buildonly }}
