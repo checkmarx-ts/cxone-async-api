@@ -1,0 +1,42 @@
+name: Build Wheel [called]
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        default: ''
+      buildonly:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  create-wheel:
+    runs-on: cx-public-ubuntu-x64
+    steps:
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.version }}
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Update version
+        if: ${{ ! inputs.buildonly }}
+        run: echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
+
+      - name: Build the Wheel
+        run: |
+          pip install build
+          python3 -m build
+
+      - name: Upload wheel artifact
+        if: ${{ ! inputs.buildonly }}
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
+        with:
+          name: wheel-${{ github.run_number }}
+          path: dist/*.whl          
