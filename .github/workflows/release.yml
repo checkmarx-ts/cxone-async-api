@@ -106,16 +106,17 @@ jobs:
     needs: [build-package, build-api-docs, call-unit-tests-coverage]
     steps:
       - name: Download apidoc pdf artifact
-        if: ${{ ! inputs.buildonly }}
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
         with:
           name: apidoc-pdf-${{ github.run_number }}
 
       - name: Download wheel artifact
-        if: ${{ ! inputs.buildonly }}
         uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
         with:
           name: wheel-${{ github.run_number }}
+
+      - name: Check
+        run: ls -l
 
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
