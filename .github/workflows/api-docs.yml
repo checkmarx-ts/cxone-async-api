@@ -22,10 +22,17 @@ jobs:
         with:
           ref: ${{ inputs.version }}
 
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Configure Pip index
+        run: pip config set global.index-url https://pypi.echohq.com/simple
+
       - name: Build PDF
         run: |
           echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
-          pip install sphinx-autoapi .
+          pip install --no-cache-dir sphinx-autoapi .
           PYTHONPATH=$(pwd) sphinx-build -M latexpdf -c docs . docs_build && : || :
           make -C docs_build
           mv docs_build/cxone-async-api.pdf docs_build/cxone-async-api-${{ inputs.version }}.pdf
