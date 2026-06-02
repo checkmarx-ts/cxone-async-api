@@ -55,6 +55,6 @@ jobs:
   #     buildonly: true
 
   call-build-api-docs:
-    uses: ./.github/workflows/build-actions/api-docs.yml
+    uses: ./.github/workflows/api-docs.yml
     with:
       buildonly: true
