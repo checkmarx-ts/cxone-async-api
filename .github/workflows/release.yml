@@ -15,6 +15,9 @@ on:
         required: true
         type: boolean
 
+permissions:
+  contents: read
+
 jobs:
   make-tag-string:
     runs-on: cx-public-ubuntu-x64
@@ -57,6 +60,8 @@ jobs:
       TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
 
   create-tag:
+    permissions:
+      contents: write
     runs-on: cx-public-ubuntu-x64
     needs: [make-tag-string, validate-no-tag]
     outputs:
