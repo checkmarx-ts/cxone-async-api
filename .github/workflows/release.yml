@@ -157,7 +157,7 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: *.whl, *.pdf
+          artifacts: "*.whl,*.pdf"
           bodyFile: release.md
           name: ${{ inputs.version }}
           prerelease: ${{ inputs.prerelease }}
