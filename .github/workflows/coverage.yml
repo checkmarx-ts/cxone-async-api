@@ -47,7 +47,9 @@ jobs:
           python-version: "3.12"
 
       - name: Install build packages
-        run: pip install coverage build python-dotenv
+        run: |
+          pip config set global.index-url https://pypi.echohq.com/simple
+          pip install coverage build python-dotenv
 
       - name: Execute Unit Tests
         run: |
