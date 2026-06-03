@@ -47,7 +47,7 @@ jobs:
 
       - name: Fail if tag ${{ needs.make-tag-string.outputs.tag }} exists
         run: |
-          [[ $(git describe --tags) ==  ${{ needs.make-tag-string.outputs.tag }} ]] && exit 1 || :
+          [[ $(git describe --tags 2> /dev/null) ==  ${{ needs.make-tag-string.outputs.tag }} ]] && exit 1 || :
 
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
@@ -104,13 +104,13 @@ jobs:
           ref: ${{ needs.make-tag-string.outputs.tag }}
 
       - name: Download apidoc pdf artifact
-        uses: actions/download-artifact@a9bc5e6ef2cb54c177f32aa5726adaa15e7e2d59 # v3.1.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: apidoc-pdf-${{ github.run_number }}
           path: ./dist
 
       - name: Download wheel artifact
-        uses: actions/download-artifact@a9bc5e6ef2cb54c177f32aa5726adaa15e7e2d59 # v3.1.0
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: wheel-${{ github.run_number }}
           path: ./dist
