@@ -96,7 +96,7 @@ jobs:
     permissions:
       contents: write
     runs-on: cx-public-ubuntu-x64
-    needs: [build-wheel, build-api-docs, call-unit-tests-coverage]
+    needs: [build-wheel, build-api-docs, call-unit-tests-coverage, make-tag-string]
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
