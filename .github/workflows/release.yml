@@ -121,7 +121,7 @@ jobs:
 
       - name: Make release text
         run: |
-          echo "# Checkmarx One Async API ${{ inputs.version }}" > release.md
+          echo "# Checkmarx One Async API ${{ needs.make-tag-string.outputs.tag }}" > release.md
 
           python3 ./.github/workflows/scripts/json2md.py ./release-notes.json ${{ needs.make-tag-string.outputs.release_version }} >> release.md
 
