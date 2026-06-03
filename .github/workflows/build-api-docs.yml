@@ -1,0 +1,46 @@
+name: Build API Docs [called]
+on:
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        default: ''
+      buildonly:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-api-docs:
+    runs-on: cx-public-ubuntu-x64
+    container: sphinxdoc/sphinx-latexpdf:8.2.3@sha256:0fc72dace4e1b181721c8ccacfa7835d6824cb1619ba060f3940e4ac73bd911c
+    steps:
+
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Configure Pip index
+        run: pip config set global.index-url https://pypi.echohq.com/simple
+
+      - name: Build PDF
+        run: |
+          echo "__version__='${{ inputs.tag }}'" > cxone_api/__version__.py
+          pip install --no-cache-dir sphinx-autoapi .
+          PYTHONPATH=$(pwd) sphinx-build -M latexpdf -c docs . docs_build && : || :
+          make -C docs_build
+          mv docs_build/cxone-async-api.pdf docs_build/cxone-async-api-${{ inputs.tag }}.pdf
+
+      - name: Upload apidoc pdf artifact
+        if: ${{ ! inputs.buildonly }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: apidoc-pdf-${{ github.run_number }}
+          path: docs_build/*.pdf          

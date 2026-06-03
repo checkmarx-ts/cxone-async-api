@@ -16,6 +16,9 @@ on:
       skip:
         type: boolean
         default: false
+      tag:
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -41,13 +44,19 @@ jobs:
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ inputs.tag }}
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.12"
 
+      - name: Configure Pip index
+        run: pip config set global.index-url https://pypi.echohq.com/simple
+
       - name: Install build packages
-        run: pip install coverage build python-dotenv
+        run: |
+          pip install coverage build python-dotenv
 
       - name: Execute Unit Tests
         run: |
