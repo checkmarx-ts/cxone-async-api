@@ -2,7 +2,7 @@ name: Build API Docs [called]
 on:
   workflow_call:
     inputs:
-      version:
+      tag:
         type: string
         default: ''
       buildonly:
@@ -17,15 +17,11 @@ jobs:
     runs-on: cx-public-ubuntu-x64
     container: sphinxdoc/sphinx-latexpdf:8.2.3@sha256:0fc72dace4e1b181721c8ccacfa7835d6824cb1619ba060f3940e4ac73bd911c
     steps:
-      - name: Fetch Code
-        if: ${{ inputs.version == '' }}
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Fetch Code
-        if: ${{ inputs.version != '' }}
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: ${{ inputs.version }}
+          ref: ${{ inputs.tag }}
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
@@ -36,11 +32,11 @@ jobs:
 
       - name: Build PDF
         run: |
-          echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
+          echo "__version__='${{ inputs.tag }}'" > cxone_api/__version__.py
           pip install --no-cache-dir sphinx-autoapi .
           PYTHONPATH=$(pwd) sphinx-build -M latexpdf -c docs . docs_build && : || :
           make -C docs_build
-          mv docs_build/cxone-async-api.pdf docs_build/cxone-async-api-${{ inputs.version }}.pdf
+          mv docs_build/cxone-async-api.pdf docs_build/cxone-async-api-${{ inputs.tag }}.pdf
 
       - name: Upload apidoc pdf artifact
         if: ${{ ! inputs.buildonly }}

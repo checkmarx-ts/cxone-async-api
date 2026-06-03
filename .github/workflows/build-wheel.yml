@@ -2,7 +2,7 @@ name: Build Wheel [called]
 on:
   workflow_call:
     inputs:
-      version:
+      tag:
         type: string
         default: ''
       buildonly:
@@ -17,14 +17,9 @@ jobs:
     runs-on: cx-public-ubuntu-x64
     steps:
       - name: Fetch Code
-        if: ${{ inputs.version == '' }}
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-
-      - name: Fetch Code
-        if: ${{ inputs.version != '' }}
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: ${{ inputs.version }}
+          ref: ${{ inputs.tag }}
 
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
@@ -35,7 +30,7 @@ jobs:
 
       - name: Update version
         if: ${{ ! inputs.buildonly }}
-        run: echo "__version__='${{ inputs.version }}'" > cxone_api/__version__.py
+        run: echo "__version__='${{ inputs.tag }}'" > cxone_api/__version__.py
 
       - name: Build the Wheel
         run: |
