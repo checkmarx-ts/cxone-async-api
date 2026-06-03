@@ -129,14 +129,14 @@ jobs:
           echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
           WHEEL_NAME=$(basename $(ls dist/*.whl))
           WHEEL_HASH=$(pip hash dist/$WHEEL_NAME | grep "^--")
-          RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ inputs.version }}/$WHEEL_NAME"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ needs.make-tag-string.outputs.tag }}/$WHEEL_NAME"
 
           echo '```' >> release.md
           echo $RELEASE_URL >> release.md
           echo '```' >> release.md
 
           echo '```' >> release.md
-          echo "git+https://github.com/${{ github.repository }}.git@${{ inputs.version }}" >> release.md
+          echo "git+https://github.com/${{ github.repository }}.git@${{ needs.make-tag-string.outputs.tag }}" >> release.md
           echo '```' >> release.md
 
           echo "## Hashes" >> release.md
@@ -154,9 +154,9 @@ jobs:
           artifactErrorsFailBuild: true
           artifacts: ./dist/*.whl,./dist/*.pdf
           bodyFile: release.md
-          name: ${{ inputs.version }}
+          name: ${{ needs.make-tag-string.outputs.tag }}
           prerelease: ${{ inputs.prerelease }}
-          tag: ${{ inputs.version }}
+          tag: ${{ needs.make-tag-string.outputs.tag }}
 
 
   artifact-cleanup:
