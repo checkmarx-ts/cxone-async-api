@@ -43,11 +43,11 @@ jobs:
         continue-on-error: true
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: refs/tags/${{ needs.make-tag-string.outputs.tag }}
+          ref: ${{ needs.make-tag-string.outputs.tag }}
 
       - name: Fail if tag ${{ needs.make-tag-string.outputs.tag }} exists
         run: |
-          [[ $(git describe --tags 2> /dev/null) ==  ${{ needs.make-tag-string.outputs.tag }} ]] && exit 1 || :
+          [[ $(git describe --tags) ==  ${{ needs.make-tag-string.outputs.tag }} ]] && exit 1 || :
 
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
