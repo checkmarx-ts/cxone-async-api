@@ -162,7 +162,7 @@ jobs:
   artifact-cleanup:
     runs-on: cx-public-ubuntu-x64
     needs: [publish-release, build-api-docs, build-wheel]
-    if: always() && needs.build*.result == 'success'
+    if: always() && ( needs.build-api-docs.result == 'success' || needs.build-wheel.result == 'success' )
     steps:
       - uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118
         with:
