@@ -1,4 +1,8 @@
 {
+  "1.1.5" : [
+    "Dependency bumps",
+    "Python 3.9 support deprecated"
+  ],
   "1.1.4" : [
     "Release notes now emitted in the release details",
     "Bump dependencies",
