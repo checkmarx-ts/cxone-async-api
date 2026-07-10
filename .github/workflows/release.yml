@@ -166,7 +166,7 @@ jobs:
     needs: [publish-release, build-api-docs, build-wheel]
     if: always() && ( needs.build-api-docs.result == 'success' || needs.build-wheel.result == 'success' )
     steps:
-      - uses: geekyeggo/delete-artifact@176a747ab7e287e3ff4787bf8a148716375ca118
+      - uses: step-security/delete-artifact@9a5b2d6793eb97cf052deddb87cd073aabb77385 # v6.0.0
         with:
           name: |
             apidoc-pdf-${{ github.run_number }}
