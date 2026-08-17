@@ -13,6 +13,7 @@ jobs:
   call-unit-tests-coverage:
     needs: [call-build-api-docs, call-build-package]
     uses: ./.github/workflows/coverage.yml
+    secrets: inherit
     secrets:
       TEST_TENANT_ID: ${{ vars.TEST_TENANT_ID }}
       TEST_REGION: ${{ vars.TEST_REGION }}
@@ -56,10 +57,12 @@ jobs:
 
   call-build-api-docs:
     uses: ./.github/workflows/build-api-docs.yml
+    secrets: inherit
     with:
       buildonly: true
 
   call-build-package:
     uses: ./.github/workflows/build-wheel.yml
+    secrets: inherit
     with:
       buildonly: true

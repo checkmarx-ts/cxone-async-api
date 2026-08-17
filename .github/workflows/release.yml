@@ -51,6 +51,7 @@ jobs:
 
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
+    secrets: inherit
     needs: [create-tag, make-tag-string]
     with:
       skip: ${{ inputs.skiputs }}
@@ -66,12 +67,14 @@ jobs:
   build-api-docs:
     uses: ./.github/workflows/build-api-docs.yml
     needs: [create-tag, make-tag-string]
+    secrets: inherit
     with:
       tag: ${{ needs.make-tag-string.outputs.tag }}
 
   build-wheel:
     uses: ./.github/workflows/build-wheel.yml
     needs: [create-tag, make-tag-string]
+    secrets: inherit
     with:
       tag: ${{ needs.make-tag-string.outputs.tag }}
 
