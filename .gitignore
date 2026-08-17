@@ -6,6 +6,7 @@ docs_build
 
 ai/**/README.md
 ai/**/*.ipynb
+ai/**/cxone-async-api-docs.md
 
 
 # force commit the tutorial

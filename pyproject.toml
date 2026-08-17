@@ -24,11 +24,13 @@ version = { attr = "cxone_api.__version__.__version__" }
 
 [tool.pydoc-markdown]
 loaders = [
-  { type = "python", search_path = ["./src"], packages = ["cxone_sbom"]}
+  { type = "python", search_path = ["."], packages = ["cxone_api"]}
 ]
 
 processors = [
-  { type = "filter", skip_empty_modules = true, documented_only=true },
+  { type = "filter", skip_empty_modules = true, documented_only=true},
+  { type = "sphinx"},
+  { type = "smart"}
 ]
 
 [tool.pydoc-markdown.renderer]

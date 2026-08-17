@@ -24,6 +24,8 @@ Reference `references/install.md` to understand:
 
 * Reference `references/package-clarification.md` for information about communicating clearly
   with a human about `cxone-async-api`.
+* Reference `references/api-clarification` for clarification on API elements used
+  when producing code for a user.
 * Reference `references/cxone-async-api-docs.md` for the API documentation.
 * Reference `references/cxone-async-api-tutorial.ipynb` for a selection of guided
   examples put together for an interactive tutorial.
