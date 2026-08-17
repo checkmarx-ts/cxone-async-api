@@ -4,6 +4,10 @@ examples/**.zip
 docs_build
 **/doctrees
 
+ai/**/README.md
+ai/**/*.ipynb
+
+
 # force commit the tutorial
 tutorial/*
 
