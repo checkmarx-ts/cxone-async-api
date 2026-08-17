@@ -1,17 +1,6 @@
 name: Unit Tests and Coverage Steps [called]
 on:
   workflow_call:
-    secrets:
-      TEST_TENANT_ID:
-        required: true
-      TEST_REGION:
-        required: true
-      TEST_OAUTH_CLIENT_SECRET:
-        required: true
-      TEST_OAUTH_CLIENT_ID:
-        required: true
-      TEST_API_KEY:
-        required: true
     inputs:
       skip:
         type: boolean

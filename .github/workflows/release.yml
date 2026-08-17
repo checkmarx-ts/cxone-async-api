@@ -56,13 +56,6 @@ jobs:
     with:
       skip: ${{ inputs.skiputs }}
       tag: ${{ needs.make-tag-string.outputs.tag }}
-    secrets:
-      TEST_TENANT_ID: ${{ vars.TEST_TENANT_ID }}
-      TEST_REGION: ${{ vars.TEST_REGION }}
-      TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
-      TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
-      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
-
 
   build-api-docs:
     uses: ./.github/workflows/build-api-docs.yml
