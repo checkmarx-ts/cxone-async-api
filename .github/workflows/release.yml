@@ -109,6 +109,12 @@ jobs:
           name: apidoc-pdf-${{ github.run_number }}
           path: ./dist
 
+      - name: Download apidoc skill artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: apidoc-skill-${{ github.run_number }}
+          path: ./dist
+
       - name: Download wheel artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
@@ -154,7 +160,7 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ./dist/*.whl,./dist/*.pdf
+          artifacts: ./dist/*.whl,./dist/*.pdf,./dist/*.zip
           bodyFile: release.md
           name: ${{ needs.make-tag-string.outputs.tag }}
           prerelease: ${{ inputs.prerelease }}
@@ -170,6 +176,7 @@ jobs:
         with:
           name: |
             apidoc-pdf-${{ github.run_number }}
+            apidoc-skill-${{ github.run_number }}
             wheel-${{ github.run_number }}
 
   remove-tag-on-failure:

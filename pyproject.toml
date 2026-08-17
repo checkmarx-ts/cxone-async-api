@@ -21,3 +21,17 @@ package-dir = {"cxone_api" = "cxone_api"}
 
 [tool.setuptools.dynamic]
 version = { attr = "cxone_api.__version__.__version__" }
+
+[tool.pydoc-markdown]
+loaders = [
+  { type = "python", search_path = ["./src"], packages = ["cxone_sbom"]}
+]
+
+processors = [
+  { type = "filter", skip_empty_modules = true, documented_only=true },
+]
+
+[tool.pydoc-markdown.renderer]
+type = "markdown"
+filename = "ai/skills/cxone-async-api/references/cxone-async-api-docs.md"
+

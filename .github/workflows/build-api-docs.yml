@@ -75,15 +75,16 @@ jobs:
           echo "# Pip Installation Commands" >> ai/skills/cxone-async-api/references/install.md
           echo "" >> ai/skills/cxone-async-api/references/install.md
           echo "## Module" >> ai/skills/cxone-async-api/references/install.md
-          echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_sbom-${{ inputs.whl_tag }}-py3-none-any.whl" >> ai/skills/cxone-async-api/references/install.md
-          echo "" >> ai/skills/cxone-async-api/references/install.md
-          echo "## CLI" >> ai/skills/cxone-async-api/references/install.md
-          echo "pip install \"cxone_sbom[cli]@https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_async_api-${{ inputs.whl_tag }}-py3-none-any.whl\"" >> ai/skills/cxone-async-api/references/install.md
+          echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_api-${{ inputs.whl_tag }}-py3-none-any.whl" >> ai/skills/cxone-async-api/references/install.md
           echo "" >> ai/skills/cxone-async-api/references/install.md
 
       - name: Add README.md as a reference
         run: |
           cp README.md ai/skills/cxone-async-api/references/
+
+      - name: Add tutorial notebook as a reference
+        run: |
+          cp tutorial/*.ipynb ai/skills/cxone-async-api/references/
 
       - name: Zip skill
         run: |
@@ -93,5 +94,5 @@ jobs:
         if: ${{ ! inputs.buildonly }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: doc-skill-${{ github.run_number }}
+          name: apidoc-skill-${{ github.run_number }}
           path: ./*.zip
