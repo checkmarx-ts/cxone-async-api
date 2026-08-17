@@ -28,7 +28,8 @@ jobs:
           python-version: "3.12"
 
       - name: Configure Pip index
-        run: pip config set global.index-url https://pypi.echohq.com/simple
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
 
       - name: Build PDF
         run: |

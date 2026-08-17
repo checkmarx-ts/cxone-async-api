@@ -177,7 +177,7 @@ jobs:
     runs-on: cx-public-ubuntu-x64
     permissions:
       contents: write
-    if: ${{ failure() && needs.create-tag.result == 'success' }}
+    if:  (failure() || cancelled()) && needs.create-tag.result == 'success'
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
