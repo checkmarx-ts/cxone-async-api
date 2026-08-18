@@ -2,7 +2,7 @@ import requests
 from typing import List, Dict
 from requests.compat import urljoin
 from ..client import CxOneClient
-from ..util import dashargs, join_query_dict
+from ..util import join_query_dict
 
 
 async def retrieve_list_of_scms(client : CxOneClient, **kwargs) -> requests.Response:
@@ -11,10 +11,10 @@ async def retrieve_list_of_scms(client : CxOneClient, **kwargs) -> requests.Resp
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)
 
-async def retrieve_scm_projects(client : CxOneClient, scmid : str, **kwargs) -> requests.Response:
+async def retrieve_scm_projects(client : CxOneClient, scmid : str, limit : int, offset : int) -> requests.Response:
     """|LowLevelApiDocstring|"""
     url = urljoin(client.api_endpoint, f"repos-manager/scms/{scmid}/projects")
-    url = join_query_dict(url, kwargs)
+    url = join_query_dict(url, {"limit" : limit, "offset" : offset})
     return await client.exec_request(requests.get, url)
 
 async def disconnect_project_from_scm(client : CxOneClient, projectid : str) -> requests.Response:

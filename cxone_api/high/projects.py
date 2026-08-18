@@ -169,9 +169,25 @@ class ProjectRepoConfig:
         return self.__scm_config
 
     @property
-    async def primary_branch(self):
+    async def primary_branch(self) -> str:
         """The configured primary branch."""
         return await self.__get_logical_primary_branch()
+
+    @property
+    async def protected_branches(self) -> List[str]:
+        if not await self.is_scm_imported:
+            return [await self.primary_branch]
+        else:
+          return_val = []
+          cfg = await self.__get_repomgr_config()
+
+          for branch_obj in cfg.get("branches", []):
+              branch_name = branch_obj.get("name", branch_obj.get("pattern", None))
+              if branch_name is not None and len(branch_name) > 0:
+                  return_val.append(branch_name)
+
+          return return_val
+
 
     @property
     async def repo_url(self):
@@ -244,6 +260,18 @@ class ProjectRepoConfig:
             return None
 
         return self.__project_data['scmRepoId']
+
+    @property
+    async def sca_auto_pr_enabled(self) -> bool:
+      return (await self.__get_repomgr_config()).get("scaAutoPrEnabled", {}).get("value", False)
+
+    @property
+    async def pr_decoration_enabled(self) -> bool:
+      return (await self.__get_repomgr_config()).get("prDecorationEnabled", {}).get("value", False)
+
+    @property
+    async def webhook_enabled (self) -> bool:
+      return (await self.__get_repomgr_config()).get("webhookEnabled", False)
 
     @property
     def project_id(self):
@@ -324,7 +352,7 @@ class ProjectRepoConfig:
 
             for k in cfg.keys():
                 if k in ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP.keys():
-                    if bool(cfg[k]):
+                    if bool(cfg.get(k, {}).get("value")):
                         engines.append(ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP[k])
 
         if len(engines) == 0:
