@@ -213,6 +213,7 @@ class CxOneClient:
                 response = await asyncio.to_thread(requests.post, self.auth_endpoint,
                 data=self.__auth_content, timeout=self.__timeout,
                 proxies=self.__proxy, verify=self.__ssl_verify, headers={
+                     "User-Agent" : self.__agent,
                     "Content-Type" : "application/x-www-form-urlencoded",
                     "Accept" : "application/json"
                 })
