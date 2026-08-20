@@ -237,13 +237,17 @@ class ProjectRepoConfig:
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
 
-        cfg = await self.__get_scm_config()
-        if cfg is None:
-            return None
-        elif "type" in cfg.keys():
-            return cfg['type']
-        else:
-            return None
+        scm_type = None
+
+        repo_cfg = await self.__get_repomgr_config()
+
+        scm_type = repo_cfg.get("scm", {}).get("typeName") if repo_cfg is not None else None
+
+        if scm_type is None:
+          cfg = await self.__get_scm_config()
+          scm_type = cfg.get("type") if cfg is not None else None
+
+        return scm_type
 
     @property
     async def repo_id(self):
