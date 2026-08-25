@@ -47,6 +47,7 @@ class FeatureFlagInspector:
         flags_json = json_on_ok(await retrieve_feature_flags(client))
 
         for flag_data in flags_json:
+            # pylint: disable=E1101
             flag_inst = CxOneFlag.from_dict(flag_data)
             inst.__name_index[flag_inst.Name] = flag_inst
 
