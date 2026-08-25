@@ -1,5 +1,5 @@
 import requests
-from typing import List, Dict
+from typing import Dict
 from requests.compat import urljoin
 from ..client import CxOneClient
 from ..util import join_query_dict
