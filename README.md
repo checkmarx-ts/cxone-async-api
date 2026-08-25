@@ -12,6 +12,11 @@ The `cxone-async-api` requires Python 3.10 or greater.
 
 ## Quickstart
 
+### AI Skill
+
+The release artifacts have a downloadable AI skill that can be used by your AI agent.  It can provide guidance and code assistance
+for `cxone-async-api`.
+
 ### Installation
 
 The install is typically performed by using a direct URL with an optional associated hash for verification.  The `releases` section of this repo
