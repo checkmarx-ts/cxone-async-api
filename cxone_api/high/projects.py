@@ -360,7 +360,9 @@ class ProjectRepoConfig:
 
             for k in cfg.keys():
                 if k in ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP.keys():
-                    if bool(cfg.get(k, {}).get("value")):
+                    if isinstance(cfg.get(k), bool) and bool(cfg.get(k)):
+                        engines.append(ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP[k])
+                    elif isinstance(cfg.get(k), dict) and bool(cfg.get(k, {}).get("value")):
                         engines.append(ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP[k])
 
         if len(engines) == 0:
