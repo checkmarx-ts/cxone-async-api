@@ -278,6 +278,10 @@ class ProjectRepoConfig:
       return (await self.__get_repomgr_config()).get("webhookEnabled", False)
 
     @property
+    async def sast_incremental_enabled (self) -> bool:
+      return (await self.__get_repomgr_config()).get("sastIncrementalScan", {}).get("value", False)
+
+    @property
     def project_id(self):
         """The project ID."""
         return self.__project_data['id']
@@ -388,7 +392,8 @@ class ProjectRepoConfig:
         "apiSecScannerEnabled" : "apisec",
         "containerScannerEnabled" : "containers",
         "ossfScoreCardScannerEnabled" : "scorecard",
-        "secretsDetectionScannerEnabled" : "2ms"
+        "secretsDetectionScannerEnabled" : "2ms",
+        "aiscScannerEnabled" : "aisc"
     }
 
     __MICROENGINES = ["2ms", "scorecard"]
