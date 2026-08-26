@@ -1,10 +1,10 @@
-import asyncio
+import asyncio, copy
 from cxone_api.util import CloneUrlParser, json_on_ok
 from cxone_api import CxOneClient
 from cxone_api.low.projects import retrieve_last_scan, retrieve_project_info
 from cxone_api.low.scans import retrieve_scan_details
 from cxone_api.low.scan_configuration import retrieve_project_configuration
-from cxone_api.low.repos_manager import get_scm_by_id, retrieve_repo_by_id
+from cxone_api.low.repos_manager import get_scm_by_id, retrieve_repo_by_id, update_repo_by_id_for_project
 from typing import List, Dict
 
 
@@ -328,6 +328,101 @@ class ProjectRepoConfig:
 
         return config
 
+
+    async def update_repository_toggles(self, *, sastScannerEnabled : bool = None, 
+                                        sastIncrementalScan : bool = None,
+                                        scaScannerEnabled : bool = None,
+                                        kicsScannerEnabled : bool = None,
+                                        apiSecScannerEnabled : bool = None,
+                                        containerScannerEnabled : bool = None,
+                                        ossfScoreCardScannerEnabled : bool = None,
+                                        secretsDetectionScannerEnabled : bool = None,
+                                        aiscScannerEnabled : bool = None,
+                                        prDecorationEnabled : bool = None,
+                                        scaAutoPrEnabled : bool = None,
+                                        webhookEnabled : bool = None,
+                                        remediationSeverities : List[str] = None,
+                                        **kwargs
+                                        ) -> bool:
+        """Updates the code repository settings for projects that are imported.
+
+           Parameters match code repository configuration key values.  Values for keys
+           introduced by future API changes can be passed in kwargs until the signature
+           for this method is updated.
+
+           Any parameter not provided will default to the current configuration's value.
+
+           :param sastScannerEnabled: Enable SAST scanner.
+           :type sastScannerEnabled: bool or None, optional
+
+           :param sastIncrementalScan: Enable SAST incremental scans.
+           :type sastIncrementalScan: bool or None, optional
+
+           :param scaScannerEnabled: Enable SCA scanner.
+           :type scaScannerEnabled: bool or None, optional
+
+           :param kicsScannerEnabled: Enable KICS scanner.
+           :type kicsScannerEnabled: bool or None, optional
+
+           :param apiSecScannerEnabled: Enable API Security scanner.
+           :type apiSecScannerEnabled: bool or None, optional
+
+           :param containerScannerEnabled: Enable Container scanner.
+           :type containerScannerEnabled: bool or None, optional
+
+           :param ossfScoreCardScannerEnabled: Enable OSSF Scorecard scanner.
+           :type ossfScoreCardScannerEnabled: bool or None, optional
+
+           :param secretsDetectionScannerEnabled: Enable Secrets Detection scanner.
+           :type secretsDetectionScannerEnabled: bool or None, optional
+
+           :param aiscScannerEnabled: Enable AI supply chain scanner.
+           :type aiscScannerEnabled: bool or None, optional
+
+           :param prDecorationEnabled: Enable pull-request decorations.
+           :type prDecorationEnabled: bool or None, optional
+
+           :param scaAutoPrEnabled: Enable SCA automatic pull-requests.
+           :type scaAutoPrEnabled: bool or None, optional
+
+           :param webhookEnabled: Enable scan execution via webhook events.
+           :type webhookEnabled: bool or None, optional
+
+           :param remediationSeverities: A list of severities for automatic remediation.
+           :type remediationSeverities: bool or None, optional
+           
+           :rtype: bool
+
+        """
+        
+        args = locals().copy()
+
+        repo_cfg = copy.deepcopy(await self.__get_repomgr_config())
+        repo_id = await self.repo_id
+
+
+        if repo_cfg is not None:
+          async with self.__lock:
+            # Reform the repo config payload for update
+            for k in args.keys():
+                if k not in repo_cfg.keys():
+                    continue
+                
+                if isinstance(repo_cfg[k], bool):
+                    orig_value = repo_cfg[k]
+                elif isinstance(repo_cfg[k], dict):
+                    orig_value = repo_cfg[k].get("value")
+                else:
+                    orig_value = False
+
+                repo_cfg[k] = orig_value if args[k] is None else args[k]
+
+            resp = await update_repo_by_id_for_project(self.__client, repo_id, self.id, repo_cfg)
+
+            self.__fetched_repomgr_config = False
+            self.__repomgr_config = None
+
+            return resp.ok
 
     async def get_enabled_scanners(self, by_branch: str) -> List[str]:
         """Retrieves the scanners that have been selected for scanning, if any.
