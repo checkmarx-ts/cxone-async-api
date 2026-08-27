@@ -28,7 +28,7 @@ loaders = [
 ]
 
 processors = [
-  { type = "filter", skip_empty_modules = true, documented_only=true},
+  { type = "filter", skip_empty_modules = true, documented_only=false},
   { type = "sphinx"},
   { type = "smart"}
 ]
