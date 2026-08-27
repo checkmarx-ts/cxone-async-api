@@ -49,6 +49,8 @@ jobs:
 
   build-ai-skill:
     runs-on: cx-public-ubuntu-x64
+    env:
+      SKILLROOT: ai/skills/cxone-async-api
     steps:
 
       - name: Fetch Code
@@ -69,26 +71,27 @@ jobs:
           
       - name: Build install reference
         run: |
-          echo "Version: ${{ inputs.tag }}" > ai/skills/cxone-async-api/references/install.md
-          echo "Github Repository: https://github.com/${{ github.repository }}" >> ai/skills/cxone-async-api/references/install.md
-          echo "" >> ai/skills/cxone-async-api/references/install.md
-          echo "# Pip Installation Commands" >> ai/skills/cxone-async-api/references/install.md
-          echo "" >> ai/skills/cxone-async-api/references/install.md
-          echo "## Module" >> ai/skills/cxone-async-api/references/install.md
-          echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_api-${{ inputs.whl_tag }}-py3-none-any.whl" >> ai/skills/cxone-async-api/references/install.md
-          echo "" >> ai/skills/cxone-async-api/references/install.md
+          export INSTALLMD="$SKILLROOT/references/install.md"
+          echo "Version: ${{ inputs.tag }}" > $INSTALLMD
+          echo "Github Repository: https://github.com/${{ github.repository }}" >> $INSTALLMD
+          echo "" >> $INSTALLMD
+          echo "# Pip Installation Commands" >> $INSTALLMD
+          echo "" >> $INSTALLMD
+          echo "## Package" >> $INSTALLMD
+          echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_api-${{ inputs.tag }}-py3-none-any.whl" >> $INSTALLMD
+          echo "" >> $INSTALLMD
 
       - name: Add README.md as a reference
         run: |
-          cp README.md ai/skills/cxone-async-api/references/
+          cp README.md $SKILLROOT/references/
 
       - name: Add tutorial notebook as a reference
         run: |
-          cp tutorial/*.ipynb ai/skills/cxone-async-api/references/
+          cp tutorial/*.ipynb $SKILLROOT/references/
 
       - name: Zip skill
         run: |
-          cd ai/skills/cxone-async-api && zip -r "$OLDPWD/cxone-async-api-skill.zip" . && cd -
+          cd $SKILLROOT && zip -r "$OLDPWD/cxone-async-api-skill.zip" . && cd -
           
       - name: Upload skill artifact
         if: ${{ ! inputs.buildonly }}

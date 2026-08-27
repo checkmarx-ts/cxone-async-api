@@ -4,6 +4,9 @@
 
 * API Keys, OAuth Client IDs, and OAuth Secrets should be considered sensitive data and
   never embedded in code.
+    * The exception is for the tutorial notebook.  Warn the user that the tutorial notebook
+      contains embedded credentials and caution should be taken to ensure the notebook
+      file is never shared or committed to a source repository with embedded credentials.
 * The Checkmarx One tenant id can be considered a secret but is overall not sensitive
   data.
 * A Checkmarx One instance can be a single-tenant (ST) or multi-tenant (MT) instance.
