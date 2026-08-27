@@ -84,6 +84,15 @@ jobs:
       - name: Add README.md as a reference
         run: |
           cp README.md $SKILLROOT/references/
+      
+      - name: Add sphinx conf.py as a reference
+        run: |
+          cp -r docs $SKILLROOT/references/
+
+      - name: Add regional monikers reference
+        run: |
+          pip install .
+          python -c "from cxone_api import ApiRegionEndpoints; print(','.join(ApiRegionEndpoints.keys()));" > $SKILLROOT/references/region-monikers.md
 
       - name: Add tutorial notebook as a reference
         run: |

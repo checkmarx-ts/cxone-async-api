@@ -17,3 +17,12 @@
   the Checkmarx One API documentation.  Undocumented APIs are typically used by
   high-level API elements.  Help with undocumented API elements will require an
   engagement with Checkmarx Professional Services.
+* Undocumented API endpoints are not specified in the package; the only way the user knows
+  the endpoint is undocumented is if it is not found in the Checkmarx One API documentation.
+* Instances of `CxOneClient` are safe to share across concurrent `asyncio` tasks.
+* Response codes in the range of 500-599 trigger retry logic.
+* Throttling in response to 429 responses is not supported at this time.  The Checkmarx One
+  API, as of the time this skill was compiled, does not implement server-side request throttling.
+* A good rule to follow is to avoid making more than two concurrent requests to any Checkmarx One API.
+* Proxy dictionary entries have a key corresponding to a protocol (e.g. `https` is typically the only
+  protocol used with Checkmarx One) and a value with a URL to the proxy (e.g. `http://localhost:8080`).
