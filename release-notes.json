@@ -1,6 +1,7 @@
 {
   "1.1.6" : [
     "AI skill added for documentation/assistance",
+    "Fix repository configuration API changes",
     "Add new disconnect API",
     "Feature flag API support",
     "Relax dependency pins",
