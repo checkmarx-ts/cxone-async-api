@@ -1,17 +1,6 @@
 name: Unit Tests and Coverage Steps [called]
 on:
   workflow_call:
-    secrets:
-      TEST_TENANT_ID:
-        required: true
-      TEST_REGION:
-        required: true
-      TEST_OAUTH_CLIENT_SECRET:
-        required: true
-      TEST_OAUTH_CLIENT_ID:
-        required: true
-      TEST_API_KEY:
-        required: true
     inputs:
       skip:
         type: boolean
@@ -52,7 +41,8 @@ jobs:
           python-version: "3.12"
 
       - name: Configure Pip index
-        run: pip config set global.index-url https://pypi.echohq.com/simple
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
 
       - name: Install build packages
         run: |
@@ -62,7 +52,7 @@ jobs:
         run: |
           export PYTHONPATH=$(pwd)
           echo "__version__='0.0.0'" > cxone_api/__version__.py
-          python3 -m build
-          pip3 install -r ./cxone_api.egg-info/requires.txt
+          python -m build
+          pip install -r ./cxone_api.egg-info/requires.txt
           coverage run -m unittest -f -v
           coverage report

@@ -51,27 +51,24 @@ jobs:
 
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
+    secrets: inherit
     needs: [create-tag, make-tag-string]
     with:
       skip: ${{ inputs.skiputs }}
       tag: ${{ needs.make-tag-string.outputs.tag }}
-    secrets:
-      TEST_TENANT_ID: ${{ vars.TEST_TENANT_ID }}
-      TEST_REGION: ${{ vars.TEST_REGION }}
-      TEST_OAUTH_CLIENT_SECRET: ${{ secrets.TEST_OAUTH_CLIENT_SECRET }}
-      TEST_OAUTH_CLIENT_ID: ${{ secrets.TEST_OAUTH_CLIENT_ID }}
-      TEST_API_KEY: ${{ secrets.TEST_API_KEY }}
-
+  
 
   build-api-docs:
     uses: ./.github/workflows/build-api-docs.yml
     needs: [create-tag, make-tag-string]
+    secrets: inherit
     with:
       tag: ${{ needs.make-tag-string.outputs.tag }}
 
   build-wheel:
     uses: ./.github/workflows/build-wheel.yml
     needs: [create-tag, make-tag-string]
+    secrets: inherit
     with:
       tag: ${{ needs.make-tag-string.outputs.tag }}
 
@@ -107,6 +104,12 @@ jobs:
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: apidoc-pdf-${{ github.run_number }}
+          path: ./dist
+
+      - name: Download apidoc skill artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: apidoc-skill-${{ github.run_number }}
           path: ./dist
 
       - name: Download wheel artifact
@@ -154,7 +157,7 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: ./dist/*.whl,./dist/*.pdf
+          artifacts: ./dist/*.whl,./dist/*.pdf,./dist/*.zip
           bodyFile: release.md
           name: ${{ needs.make-tag-string.outputs.tag }}
           prerelease: ${{ inputs.prerelease }}
@@ -170,6 +173,7 @@ jobs:
         with:
           name: |
             apidoc-pdf-${{ github.run_number }}
+            apidoc-skill-${{ github.run_number }}
             wheel-${{ github.run_number }}
 
   remove-tag-on-failure:
@@ -177,7 +181,7 @@ jobs:
     runs-on: cx-public-ubuntu-x64
     permissions:
       contents: write
-    if: ${{ failure() && needs.create-tag.result == 'success' }}
+    if:  (failure() || cancelled()) && needs.create-tag.result == 'success'
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd

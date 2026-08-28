@@ -1,4 +1,12 @@
 {
+  "1.1.6" : [
+    "AI skill added for documentation and coding assistance",
+    "Fix repository configuration API changes",
+    "Add new disconnect API",
+    "Feature flag API support",
+    "Relax dependency pins",
+    "Internal build fixes"
+  ],
   "1.1.5" : [
     "Dependency bumps",
     "Python 3.9 support deprecated"

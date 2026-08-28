@@ -11,7 +11,17 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "env": { "PYTHONPATH" : "${workspaceFolder}:${workspaceFolder}/tests"},
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+        },
+        {
+            "name": "yaml",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": { "PYTHONPATH" : "${workspaceFolder}:${workspaceFolder}/tests"},
+            "envFile": "${workspaceFolder}/.env",
+            "args": ["ai/skills/cxone-async-api/references"]
         }
     ]
 }

@@ -6,12 +6,12 @@ build-backend = "setuptools.build_meta"
 name = "cxone_api"
 dynamic = ["version"]
 dependencies = [
-    "requests==2.33.0",
-    "jsonpath-ng==1.8.0",
-    "validators==0.35.0",
-    "dataclasses-json==0.6.7",
-    "deprecation==2.1.0",
-    "aenum==3.1.17"
+    "requests>=2.33.0",
+    "jsonpath-ng>=1.8.0",
+    "validators>=0.35.0",
+    "dataclasses-json>=0.6.7",
+    "deprecation>=2.1.0",
+    "aenum>=3.1.17"
 ]
 description = "CheckmarxOne Async API"
 requires-python = ">=3.10"
@@ -21,3 +21,19 @@ package-dir = {"cxone_api" = "cxone_api"}
 
 [tool.setuptools.dynamic]
 version = { attr = "cxone_api.__version__.__version__" }
+
+[tool.pydoc-markdown]
+loaders = [
+  { type = "python", search_path = ["."], packages = ["cxone_api"]}
+]
+
+processors = [
+  { type = "filter", skip_empty_modules = true, documented_only=false},
+  { type = "sphinx"},
+  { type = "smart"}
+]
+
+[tool.pydoc-markdown.renderer]
+type = "markdown"
+filename = "ai/skills/cxone-async-api/references/cxone-async-api-docs.md"
+

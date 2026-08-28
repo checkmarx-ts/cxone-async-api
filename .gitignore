@@ -4,6 +4,12 @@ examples/**.zip
 docs_build
 **/doctrees
 
+ai/**/README.md
+ai/**/*.ipynb
+ai/**/cxone-async-api-docs.md
+ai/**/references/*.yaml
+
+
 # force commit the tutorial
 tutorial/*
 

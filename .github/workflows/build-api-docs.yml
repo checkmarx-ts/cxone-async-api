@@ -28,12 +28,13 @@ jobs:
           python-version: "3.12"
 
       - name: Configure Pip index
-        run: pip config set global.index-url https://pypi.echohq.com/simple
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
 
       - name: Build PDF
         run: |
           echo "__version__='${{ inputs.tag }}'" > cxone_api/__version__.py
-          pip install --no-cache-dir sphinx-autoapi .
+          pip install --no-cache-dir sphinx-autoapi==3.8.0 .
           PYTHONPATH=$(pwd) sphinx-build -M latexpdf -c docs . docs_build && : || :
           make -C docs_build
           mv docs_build/cxone-async-api.pdf docs_build/cxone-async-api-${{ inputs.tag }}.pdf
@@ -44,3 +45,71 @@ jobs:
         with:
           name: apidoc-pdf-${{ github.run_number }}
           path: docs_build/*.pdf          
+
+
+  build-ai-skill:
+    runs-on: cx-public-ubuntu-x64
+    env:
+      SKILLROOT: ai/skills/cxone-async-api
+    steps:
+
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: "3.12"
+
+      - name: Configure Pip index
+        run: |
+          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+
+      - name: Build Markdown Docs
+        run: |
+          pip install --no-cache-dir pydoc-markdown==4.8.2
+          pydoc-markdown
+          
+      - name: Build install reference
+        run: |
+          export INSTALLMD="$SKILLROOT/references/install.md"
+          echo "Version: ${{ inputs.tag }}" > $INSTALLMD
+          echo "Github Repository: https://github.com/${{ github.repository }}" >> $INSTALLMD
+          echo "" >> $INSTALLMD
+          echo "# Pip Installation Commands" >> $INSTALLMD
+          echo "" >> $INSTALLMD
+          echo "## Package" >> $INSTALLMD
+          echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_api-${{ inputs.tag }}-py3-none-any.whl" >> $INSTALLMD
+          echo "" >> $INSTALLMD
+
+      - name: Add OpenAPI YAML
+        run: |
+          pip install --no-cache-dir requests>=2.33.0
+          python ./.github/workflows/scripts/yamlspecs.py $SKILLROOT/references
+
+      - name: Add README.md as a reference
+        run: |
+          cp README.md $SKILLROOT/references/
+      
+      - name: Add sphinx conf.py as a reference
+        run: |
+          cp -r docs $SKILLROOT/references/
+
+      - name: Add regional monikers reference
+        run: |
+          pip install .
+          python -c "from cxone_api import ApiRegionEndpoints; print(','.join(ApiRegionEndpoints.keys()));" > $SKILLROOT/references/region-monikers.md
+
+      - name: Add tutorial notebook as a reference
+        run: |
+          cp tutorial/*.ipynb $SKILLROOT/references/
+
+      - name: Zip skill
+        run: |
+          cd $SKILLROOT && zip -r "$OLDPWD/cxone-async-api-skill.zip" . && cd -
+          
+      - name: Upload skill artifact
+        if: ${{ ! inputs.buildonly }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: apidoc-skill-${{ github.run_number }}
+          path: ./*.zip
