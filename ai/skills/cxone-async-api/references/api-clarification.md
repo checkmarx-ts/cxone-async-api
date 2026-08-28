@@ -41,6 +41,8 @@
     * It is acceptable to use the raw `CxOneClient` methods to access the API.
     * Instruct the user this approach is not ideal and they should open a feature
       request to have the API endpoint supported with a method in the low-level API.
+* The endpoint docstrings in `cxone-async-api` may have path variables that are positional
+  and concept matches for those in OpenAPI specifications but may not have matching names.
 * Some low-level API elements reference undocumented APIs that will not be found in
   the Checkmarx One API documentation.  Undocumented APIs are typically used by
   high-level API elements.  Help with undocumented API elements will require an
