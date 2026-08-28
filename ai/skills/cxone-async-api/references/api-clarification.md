@@ -35,6 +35,12 @@
     it is typically a defect that should be reported to Checkmarx support.
 * Low-level API methods indicate the endpoint of the API in the docstring.  The endpoint
   can be used to match the OpenAPI specification related to that low-level API method.
+* There may not be a method for implementing access to some API endpoints documented in the
+  OpenAPI specifications.  In cases where the user needs to access an API endpoint that
+  does not have a corresponding low-level API method in `cxone-async-api`:
+    * It is acceptable to use the raw `CxOneClient` methods to access the API.
+    * Instruct the user this approach is not ideal and they should open a feature
+      request to have the API endpoint supported with a method in the low-level API.
 * Some low-level API elements reference undocumented APIs that will not be found in
   the Checkmarx One API documentation.  Undocumented APIs are typically used by
   high-level API elements.  Help with undocumented API elements will require an
