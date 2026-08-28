@@ -81,6 +81,11 @@ jobs:
           echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_api-${{ inputs.tag }}-py3-none-any.whl" >> $INSTALLMD
           echo "" >> $INSTALLMD
 
+      - name: Add OpenAPI YAML
+        run: |
+          pip install --no-cache-dir requests>=2.33.0
+          python ./.github/workflows/scripts/yamlspecs.py $SKILLROOT/references
+
       - name: Add README.md as a reference
         run: |
           cp README.md $SKILLROOT/references/
