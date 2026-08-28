@@ -22,11 +22,14 @@ Reference `references/install.md` to understand:
 
 # Use Case: Guide implementation with code examples
 
-* Reference `references/package-clarification.md` for information about communicating clearly
-  with a human about `cxone-async-api`.
+* Reference `references/cxone-async-api-docs.md` for the API documentation.
+  * For companion information for reference `references/cxone-async-api-docs.md`, reference
+    `references/*.yaml` for the OpenAPI references useful for understanding input and output
+    request, response, url, and query inputs to the API endpoint.
 * Reference `references/api-clarification.md` for clarification on API elements used
   when producing code for a user.
-* Reference `references/cxone-async-api-docs.md` for the API documentation.
+* Reference `references/package-clarification.md` for information about communicating clearly
+  with a human about `cxone-async-api`.
 * Reference `references/region-monikers.md` for a list of multi-tenant regional monikers.
 * Reference `references/**/conf.py` for information about how Sphinx is configured to build
   a PDF version of the `references/cxone-async-api-docs.md`.  The Sphinx configuration emits
@@ -50,3 +53,6 @@ Reference `references/install.md` to understand:
   in `references/auth-clarifications.md`, are obtained from environment variables
   in emitted examples.  Instruct the user how to set the environment variables
   before they execute the example code.
+* At the start of code comments documenting the code, include the URL for the
+  Checkmarx One API documentation and instruct the user it is the most
+  accurate usage reference for low-level APIs.
