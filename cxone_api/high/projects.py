@@ -342,6 +342,7 @@ class ProjectRepoConfig:
                                         scaAutoPrEnabled : bool = None,
                                         webhookEnabled : bool = None,
                                         remediationSeverities : List[str] = None,
+                                        commitIdScanTagEnabled : bool = None,
                                         **kwargs
                                         ) -> bool:
         """Updates the code repository settings for projects that are imported.
@@ -389,7 +390,10 @@ class ProjectRepoConfig:
            :type webhookEnabled: bool or None, optional
 
            :param remediationSeverities: A list of severities for automatic remediation.
-           :type remediationSeverities: bool or None, optional
+           :type remediationSeverities: List[str] or None, optional
+
+           :param commitIdScanTagEnabled: Add the Git commit hash tag to each scan.
+           :type commitIdScanTagEnabled: bool or None, optional
            
            :rtype: bool
 
