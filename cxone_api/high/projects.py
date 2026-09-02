@@ -441,6 +441,12 @@ class ProjectRepoConfig:
         args = locals().copy()
 
         repo_cfg = copy.deepcopy(await self.__get_repomgr_config())
+
+        # normalize the config for the editable values
+        for k in repo_cfg.keys():
+            if isinstance(repo_cfg[k], dict) and "value" in repo_cfg[k].keys():
+                repo_cfg[k] = repo_cfg[k].get("value")
+
         repo_id = await self.repo_id
 
         if repo_cfg is not None:
@@ -450,15 +456,8 @@ class ProjectRepoConfig:
                     for k in cur_dict.keys():
                         if k not in repo_cfg.keys():
                             continue
-
-                        if isinstance(repo_cfg[k], bool):
-                            orig_value = repo_cfg[k]
-                        elif isinstance(repo_cfg[k], dict):
-                            orig_value = repo_cfg[k].get("value")
-                        else:
-                            orig_value = False
-
-                        repo_cfg[k] = orig_value if cur_dict[k] is None else cur_dict[k]
+                        elif cur_dict[k] is not None:
+                            repo_cfg[k] = cur_dict[k]
 
                 resp = await update_repo_by_id_for_project(
                     self.__client, repo_id, self.id, repo_cfg
