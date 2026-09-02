@@ -404,18 +404,19 @@ class ProjectRepoConfig:
         if repo_cfg is not None:
           async with self.__lock:
             # Reform the repo config payload for update
-            for k in args.keys():
-                if k not in repo_cfg.keys():
-                    continue
-                
-                if isinstance(repo_cfg[k], bool):
-                    orig_value = repo_cfg[k]
-                elif isinstance(repo_cfg[k], dict):
-                    orig_value = repo_cfg[k].get("value")
-                else:
-                    orig_value = False
+            for cur_dict in [args, kwargs]:
+              for k in cur_dict.keys():
+                  if k not in repo_cfg.keys():
+                      continue
+                  
+                  if isinstance(repo_cfg[k], bool):
+                      orig_value = repo_cfg[k]
+                  elif isinstance(repo_cfg[k], dict):
+                      orig_value = repo_cfg[k].get("value")
+                  else:
+                      orig_value = False
 
-                repo_cfg[k] = orig_value if args[k] is None else args[k]
+                  repo_cfg[k] = orig_value if cur_dict[k] is None else cur_dict[k]
 
             resp = await update_repo_by_id_for_project(self.__client, repo_id, self.id, repo_cfg)
 
