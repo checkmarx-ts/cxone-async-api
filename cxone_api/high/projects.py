@@ -440,12 +440,34 @@ class ProjectRepoConfig:
 
         args = locals().copy()
 
+        # These settings do nothing if project is not connected to an imported repository.
+        if not await self.is_scm_imported:
+            return False
+
         repo_cfg = copy.deepcopy(await self.__get_repomgr_config())
 
         # normalize the config for the editable values
         for k in repo_cfg.keys():
             if isinstance(repo_cfg[k], dict) and "value" in repo_cfg[k].keys():
                 repo_cfg[k] = repo_cfg[k].get("value")
+
+        # Validate settings that require webhooks to be enabled.
+        if not webhookEnabled and not repo_cfg.get("webhookEnabled"):
+            if commitIdScanTagEnabled:
+                return False
+            
+            if prDecorationEnabled:
+                return False
+
+        # Validate sast incremental scans must have sast scanner enabled.
+        if not sastScannerEnabled and not repo_cfg.get("sastScannerEnabled"):
+            if sastIncrementalScan:
+                return False
+
+        # Validate SCA scanner is enabled for auto PR generation
+        if not scaScannerEnabled and not repo_cfg.get("scaScannerEnabled"):
+            if scaAutoPrEnabled:
+                return False
 
         repo_id = await self.repo_id
 
