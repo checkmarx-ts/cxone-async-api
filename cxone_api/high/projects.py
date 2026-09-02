@@ -4,7 +4,11 @@ from cxone_api import CxOneClient
 from cxone_api.low.projects import retrieve_last_scan, retrieve_project_info
 from cxone_api.low.scans import retrieve_scan_details
 from cxone_api.low.scan_configuration import retrieve_project_configuration
-from cxone_api.low.repos_manager import get_scm_by_id, retrieve_repo_by_id, update_repo_by_id_for_project
+from cxone_api.low.repos_manager import (
+    get_scm_by_id,
+    retrieve_repo_by_id,
+    update_repo_by_id_for_project,
+)
 from typing import List, Dict
 
 
@@ -23,13 +27,13 @@ class ProjectRepoConfig:
     async def from_project_json(cxone_client: CxOneClient, json: dict):
         """A factory method to create an instance from the JSON retrieved with the retrieve_project_info API.
 
-           :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One
-           :type cxone_client: CxOneClient
+        :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One
+        :type cxone_client: CxOneClient
 
-           :param json: A JSON dictionary.
-           :type json: dict
+        :param json: A JSON dictionary.
+        :type json: dict
 
-           :rtype: ProjectRepoConfig
+        :rtype: ProjectRepoConfig
         """
         retval = ProjectRepoConfig()
         ProjectRepoConfig.__common_init(retval, cxone_client)
@@ -42,17 +46,19 @@ class ProjectRepoConfig:
     async def from_project_id(cxone_client: CxOneClient, project_id: str):
         """A factory method to create an instance using the project ID.
 
-            :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One.
-            :type cxone_client: CxOneClient
+        :param cxone_client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type cxone_client: CxOneClient
 
-            :param project_id: A project ID.
-            :type project_id: str
+        :param project_id: A project ID.
+        :type project_id: str
 
-            :rtype: ProjectRepoConfig
+        :rtype: ProjectRepoConfig
         """
         retval = ProjectRepoConfig()
         ProjectRepoConfig.__common_init(retval, cxone_client)
-        retval.__project_data = json_on_ok(await retrieve_project_info(cxone_client, project_id))
+        retval.__project_data = json_on_ok(
+            await retrieve_project_info(cxone_client, project_id)
+        )
         retval.__is_imported = "repoId" in retval.__project_data.keys()
         return retval
 
@@ -65,12 +71,16 @@ class ProjectRepoConfig:
     async def get_project_scan_config(self):
         """Returns the project's scan configuration.
 
-            :rtype: dict
+        :rtype: dict
         """
         async with self.__lock:
             if not self.__fetched_scan_config:
                 self.__fetched_scan_config = True
-                self.__scan_config = json_on_ok(await retrieve_project_configuration(self.__client, projectid=self.project_id))
+                self.__scan_config = json_on_ok(
+                    await retrieve_project_configuration(
+                        self.__client, projectid=self.project_id
+                    )
+                )
 
         return self.__scan_config
 
@@ -78,8 +88,8 @@ class ProjectRepoConfig:
         # The project config API does not always return the repoUrl.  The scan configuration
         # API used by the UI has it if it is not in the project config.
         for entry in await self.get_project_scan_config():
-            if entry['key'] == "scan.handler.git.repository":
-                return entry['value']
+            if entry["key"] == "scan.handler.git.repository":
+                return entry["value"]
 
         return None
 
@@ -87,8 +97,8 @@ class ProjectRepoConfig:
         # The project config API does not always return the repoUrl.  The scan configuration
         # API used by the UI has it if it is not in the project config.
         for entry in await self.get_project_scan_config():
-            if entry['key'] == "scan.handler.git.branch":
-                return entry['value']
+            if entry["key"] == "scan.handler.git.branch":
+                return entry["value"]
 
         return ""
 
@@ -100,7 +110,7 @@ class ProjectRepoConfig:
         async with self.__lock:
             if not self.__fetched_repomgr_config:
                 self.__fetched_repomgr_config = True
-                repoId = self.__project_data['repoId']
+                repoId = self.__project_data["repoId"]
 
                 repo_response = await retrieve_repo_by_id(self.__client, repoId)
                 if repo_response.ok:
@@ -116,21 +126,22 @@ class ProjectRepoConfig:
         if cfg is None:
             return ""
         else:
-            return cfg['url']
+            return cfg["url"]
 
     async def __get_primary_branch_from_repomgr_config(self):
         cfg = await self.__get_repomgr_config()
 
         if cfg is not None:
             if "branches" in cfg.keys():
-                for b in cfg['branches']:
+                for b in cfg["branches"]:
                     # Select the default branch as specified in the scm or the first branch
                     # if only one protected branch is specified.
-                    if ("isDefaultBranch" in b.keys() and bool(b['isDefaultBranch'])) \
-                            or len(cfg['branches']) == 1:
+                    if (
+                        "isDefaultBranch" in b.keys() and bool(b["isDefaultBranch"])
+                    ) or len(cfg["branches"]) == 1:
                         # December 2025: The element name changed from "name" to "pattern"
                         # which broke everything that needs to know the default branch.
-                        # There is currently no UI support for specifying a branch name pattern, 
+                        # There is currently no UI support for specifying a branch name pattern,
                         # so this will probably break in the future.
                         return b.get("name", b.get("pattern", ""))
         return ""
@@ -138,16 +149,16 @@ class ProjectRepoConfig:
     async def __get_logical_repo_url(self):
         if len(await self.__get_repourl_from_repomgr_config()) > 0:
             return await self.__get_repourl_from_repomgr_config()
-        elif len(self.__project_data['repoUrl']) > 0:
-            return self.__project_data['repoUrl']
+        elif len(self.__project_data["repoUrl"]) > 0:
+            return self.__project_data["repoUrl"]
         elif len(await self.__get_repourl_from_scan_config()) > 0:
             return await self.__get_repourl_from_scan_config()
         else:
             return None
 
     async def __get_logical_primary_branch(self):
-        if len(self.__project_data['mainBranch']) > 0:
-            return self.__project_data['mainBranch']
+        if len(self.__project_data["mainBranch"]) > 0:
+            return self.__project_data["mainBranch"]
         elif len(await self.__get_primary_branch_from_repomgr_config()) > 0:
             return await self.__get_primary_branch_from_repomgr_config()
         elif len(await self.__get_primary_branch_from_scan_config()):
@@ -164,7 +175,9 @@ class ProjectRepoConfig:
         async with self.__lock:
             if not self.__fetched_scm_config:
                 self.__fetched_scm_config = True
-                self.__scm_config = json_on_ok(await get_scm_by_id(self.__client, this_scm_id))
+                self.__scm_config = json_on_ok(
+                    await get_scm_by_id(self.__client, this_scm_id)
+                )
 
         return self.__scm_config
 
@@ -178,16 +191,15 @@ class ProjectRepoConfig:
         if not await self.is_scm_imported:
             return [await self.primary_branch]
         else:
-          return_val = []
-          cfg = await self.__get_repomgr_config()
+            return_val = []
+            cfg = await self.__get_repomgr_config()
 
-          for branch_obj in cfg.get("branches", []):
-              branch_name = branch_obj.get("name", branch_obj.get("pattern", None))
-              if branch_name is not None and len(branch_name) > 0:
-                  return_val.append(branch_name)
+            for branch_obj in cfg.get("branches", []):
+                branch_name = branch_obj.get("name", branch_obj.get("pattern", None))
+                if branch_name is not None and len(branch_name) > 0:
+                    return_val.append(branch_name)
 
-          return return_val
-
+            return return_val
 
     @property
     async def repo_url(self):
@@ -219,7 +231,7 @@ class ProjectRepoConfig:
         if cfg is None:
             return None
         elif "scmId" in cfg.keys():
-            return cfg['scmId']
+            return cfg["scmId"]
         else:
             return None
 
@@ -241,11 +253,13 @@ class ProjectRepoConfig:
 
         repo_cfg = await self.__get_repomgr_config()
 
-        scm_type = repo_cfg.get("scm", {}).get("typeName") if repo_cfg is not None else None
+        scm_type = (
+            repo_cfg.get("scm", {}).get("typeName") if repo_cfg is not None else None
+        )
 
         if scm_type is None:
-          cfg = await self.__get_scm_config()
-          scm_type = cfg.get("type") if cfg is not None else None
+            cfg = await self.__get_scm_config()
+            scm_type = cfg.get("type") if cfg is not None else None
 
         return scm_type
 
@@ -255,7 +269,7 @@ class ProjectRepoConfig:
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
 
-        return self.__project_data['repoId']
+        return self.__project_data["repoId"]
 
     @property
     async def scm_repo_id(self):
@@ -263,49 +277,60 @@ class ProjectRepoConfig:
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
 
-        return self.__project_data['scmRepoId']
+        return self.__project_data["scmRepoId"]
 
     @property
     async def sca_auto_pr_enabled(self) -> bool:
-      return (await self.__get_repomgr_config()).get("scaAutoPrEnabled", {}).get("value", False)
+        return (
+            (await self.__get_repomgr_config())
+            .get("scaAutoPrEnabled", {})
+            .get("value", False)
+        )
 
     @property
     async def pr_decoration_enabled(self) -> bool:
-      return (await self.__get_repomgr_config()).get("prDecorationEnabled", {}).get("value", False)
+        return (
+            (await self.__get_repomgr_config())
+            .get("prDecorationEnabled", {})
+            .get("value", False)
+        )
 
     @property
-    async def webhook_enabled (self) -> bool:
-      return (await self.__get_repomgr_config()).get("webhookEnabled", False)
+    async def webhook_enabled(self) -> bool:
+        return (await self.__get_repomgr_config()).get("webhookEnabled", False)
 
     @property
-    async def sast_incremental_enabled (self) -> bool:
-      return (await self.__get_repomgr_config()).get("sastIncrementalScan", {}).get("value", False)
+    async def sast_incremental_enabled(self) -> bool:
+        return (
+            (await self.__get_repomgr_config())
+            .get("sastIncrementalScan", {})
+            .get("value", False)
+        )
 
     @property
     def project_id(self):
         """The project ID."""
-        return self.__project_data['id']
-
+        return self.__project_data["id"]
 
     async def get_default_engine_configuration(self, by_branch: str) -> List[Dict]:
         """Retrieves a list of engine configurations based on the project's config or last scan.
 
-            The returned list of dictionaries can be modified or used as-is as engine configs
-            provided to the run_a_scan API.
-            
-            If the project was created as a code repository import, this returns a list of
-            configuration dictionaries for scan engines as set in the code repository
-            configuration for the project.
+        The returned list of dictionaries can be modified or used as-is as engine configs
+        provided to the run_a_scan API.
 
-            If the project is a manual scan project, this returns a list of
-            configuration dictionaries for engines used in the latest scan for the specified branch.  
-            
-            If neither method described above can yield any engine configurations, and empty list is returned.
+        If the project was created as a code repository import, this returns a list of
+        configuration dictionaries for scan engines as set in the code repository
+        configuration for the project.
 
-            :param by_branch: The name of the branch used to retrieve the last scan.
-            :type by_branch: str
+        If the project is a manual scan project, this returns a list of
+        configuration dictionaries for engines used in the latest scan for the specified branch.
 
-            :rtype: List[Dict]
+        If neither method described above can yield any engine configurations, and empty list is returned.
+
+        :param by_branch: The name of the branch used to retrieve the last scan.
+        :type by_branch: str
+
+        :rtype: List[Dict]
 
         """
 
@@ -313,143 +338,158 @@ class ProjectRepoConfig:
 
         scanners = await self.get_enabled_scanners(by_branch)
 
-        regular_engines = [engine for engine in scanners if engine not in ProjectRepoConfig.__MICROENGINES]
-        micro_engines = [engine for engine in scanners if engine in ProjectRepoConfig.__MICROENGINES]
+        regular_engines = [
+            engine
+            for engine in scanners
+            if engine not in ProjectRepoConfig.__MICROENGINES
+        ]
+        micro_engines = [
+            engine for engine in scanners if engine in ProjectRepoConfig.__MICROENGINES
+        ]
 
         for eng in regular_engines:
-            config.append({ "type" : eng, "value" : {} })
+            config.append({"type": eng, "value": {}})
 
         if len(micro_engines) > 0:
-            micro_engine_cfg = {"type" : "microengines", "value" : {m_eng_name : "false" for m_eng_name in ProjectRepoConfig.__MICROENGINES}}
+            micro_engine_cfg = {
+                "type": "microengines",
+                "value": {
+                    m_eng_name: "false"
+                    for m_eng_name in ProjectRepoConfig.__MICROENGINES
+                },
+            }
             config.append(micro_engine_cfg)
 
             for eng in micro_engines:
-                micro_engine_cfg['value'][eng] = "true"
+                micro_engine_cfg["value"][eng] = "true"
 
         return config
 
-
-    async def update_repository_toggles(self, *, sastScannerEnabled : bool = None, 
-                                        sastIncrementalScan : bool = None,
-                                        scaScannerEnabled : bool = None,
-                                        kicsScannerEnabled : bool = None,
-                                        apiSecScannerEnabled : bool = None,
-                                        containerScannerEnabled : bool = None,
-                                        ossfScoreCardScannerEnabled : bool = None,
-                                        secretsDetectionScannerEnabled : bool = None,
-                                        aiscScannerEnabled : bool = None,
-                                        prDecorationEnabled : bool = None,
-                                        scaAutoPrEnabled : bool = None,
-                                        webhookEnabled : bool = None,
-                                        remediationSeverities : List[str] = None,
-                                        commitIdScanTagEnabled : bool = None,
-                                        **kwargs
-                                        ) -> bool:
+    async def update_repository_toggles(
+        self,
+        *,
+        sastScannerEnabled: bool = None,
+        sastIncrementalScan: bool = None,
+        scaScannerEnabled: bool = None,
+        kicsScannerEnabled: bool = None,
+        apiSecScannerEnabled: bool = None,
+        containerScannerEnabled: bool = None,
+        ossfScoreCardScannerEnabled: bool = None,
+        secretsDetectionScannerEnabled: bool = None,
+        aiscScannerEnabled: bool = None,
+        prDecorationEnabled: bool = None,
+        scaAutoPrEnabled: bool = None,
+        webhookEnabled: bool = None,
+        remediationSeverities: List[str] = None,
+        commitIdScanTagEnabled: bool = None,
+        **kwargs,
+    ) -> bool:
         """Updates the code repository settings for projects that are imported.
 
-           Parameters match code repository configuration key values.  Values for keys
-           introduced by future API changes can be passed in kwargs until the signature
-           for this method is updated.
+        Parameters match code repository configuration key values.  Values for keys
+        introduced by future API changes can be passed in kwargs until the signature
+        for this method is updated.
 
-           Any parameter not provided will default to the current configuration's value.
+        Any parameter not provided will default to the current configuration's value.
 
-           :param sastScannerEnabled: Enable SAST scanner.
-           :type sastScannerEnabled: bool or None, optional
+        :param sastScannerEnabled: Enable SAST scanner.
+        :type sastScannerEnabled: bool or None, optional
 
-           :param sastIncrementalScan: Enable SAST incremental scans.
-           :type sastIncrementalScan: bool or None, optional
+        :param sastIncrementalScan: Enable SAST incremental scans.
+        :type sastIncrementalScan: bool or None, optional
 
-           :param scaScannerEnabled: Enable SCA scanner.
-           :type scaScannerEnabled: bool or None, optional
+        :param scaScannerEnabled: Enable SCA scanner.
+        :type scaScannerEnabled: bool or None, optional
 
-           :param kicsScannerEnabled: Enable KICS scanner.
-           :type kicsScannerEnabled: bool or None, optional
+        :param kicsScannerEnabled: Enable KICS scanner.
+        :type kicsScannerEnabled: bool or None, optional
 
-           :param apiSecScannerEnabled: Enable API Security scanner.
-           :type apiSecScannerEnabled: bool or None, optional
+        :param apiSecScannerEnabled: Enable API Security scanner.
+        :type apiSecScannerEnabled: bool or None, optional
 
-           :param containerScannerEnabled: Enable Container scanner.
-           :type containerScannerEnabled: bool or None, optional
+        :param containerScannerEnabled: Enable Container scanner.
+        :type containerScannerEnabled: bool or None, optional
 
-           :param ossfScoreCardScannerEnabled: Enable OSSF Scorecard scanner.
-           :type ossfScoreCardScannerEnabled: bool or None, optional
+        :param ossfScoreCardScannerEnabled: Enable OSSF Scorecard scanner.
+        :type ossfScoreCardScannerEnabled: bool or None, optional
 
-           :param secretsDetectionScannerEnabled: Enable Secrets Detection scanner.
-           :type secretsDetectionScannerEnabled: bool or None, optional
+        :param secretsDetectionScannerEnabled: Enable Secrets Detection scanner.
+        :type secretsDetectionScannerEnabled: bool or None, optional
 
-           :param aiscScannerEnabled: Enable AI supply chain scanner.
-           :type aiscScannerEnabled: bool or None, optional
+        :param aiscScannerEnabled: Enable AI supply chain scanner.
+        :type aiscScannerEnabled: bool or None, optional
 
-           :param prDecorationEnabled: Enable pull-request decorations.
-           :type prDecorationEnabled: bool or None, optional
+        :param prDecorationEnabled: Enable pull-request decorations.
+        :type prDecorationEnabled: bool or None, optional
 
-           :param scaAutoPrEnabled: Enable SCA automatic pull-requests.
-           :type scaAutoPrEnabled: bool or None, optional
+        :param scaAutoPrEnabled: Enable SCA automatic pull-requests.
+        :type scaAutoPrEnabled: bool or None, optional
 
-           :param webhookEnabled: Enable scan execution via webhook events.
-           :type webhookEnabled: bool or None, optional
+        :param webhookEnabled: Enable scan execution via webhook events.
+        :type webhookEnabled: bool or None, optional
 
-           :param remediationSeverities: A list of severities for automatic remediation.
-           :type remediationSeverities: List[str] or None, optional
+        :param remediationSeverities: A list of severities for automatic remediation.
+        :type remediationSeverities: List[str] or None, optional
 
-           :param commitIdScanTagEnabled: Add the Git commit hash tag to each scan.
-           :type commitIdScanTagEnabled: bool or None, optional
-           
-           :rtype: bool
+        :param commitIdScanTagEnabled: Add the Git commit hash tag to each scan.
+        :type commitIdScanTagEnabled: bool or None, optional
+
+        :rtype: bool
 
         """
-        
+
         args = locals().copy()
 
         repo_cfg = copy.deepcopy(await self.__get_repomgr_config())
         repo_id = await self.repo_id
 
-
         if repo_cfg is not None:
-          async with self.__lock:
-            # Reform the repo config payload for update
-            for cur_dict in [args, kwargs]:
-              for k in cur_dict.keys():
-                  if k not in repo_cfg.keys():
-                      continue
-                  
-                  if isinstance(repo_cfg[k], bool):
-                      orig_value = repo_cfg[k]
-                  elif isinstance(repo_cfg[k], dict):
-                      orig_value = repo_cfg[k].get("value")
-                  else:
-                      orig_value = False
+            async with self.__lock:
+                # Reform the repo config payload for update
+                for cur_dict in [args, kwargs]:
+                    for k in cur_dict.keys():
+                        if k not in repo_cfg.keys():
+                            continue
 
-                  repo_cfg[k] = orig_value if cur_dict[k] is None else cur_dict[k]
+                        if isinstance(repo_cfg[k], bool):
+                            orig_value = repo_cfg[k]
+                        elif isinstance(repo_cfg[k], dict):
+                            orig_value = repo_cfg[k].get("value")
+                        else:
+                            orig_value = False
 
-            resp = await update_repo_by_id_for_project(self.__client, repo_id, self.id, repo_cfg)
+                        repo_cfg[k] = orig_value if cur_dict[k] is None else cur_dict[k]
 
-            self.__fetched_repomgr_config = False
-            self.__repomgr_config = None
+                resp = await update_repo_by_id_for_project(
+                    self.__client, repo_id, self.id, repo_cfg
+                )
 
-            return resp.ok
+                self.__fetched_repomgr_config = False
+                self.__repomgr_config = None
+
+                return resp.ok
 
     async def get_enabled_scanners(self, by_branch: str) -> List[str]:
         """Retrieves the scanners that have been selected for scanning, if any.
 
-            If the project was created as a code repository import, this returns a list of
-            selected scan engines as set in the code repository configuration for the project.
+        If the project was created as a code repository import, this returns a list of
+        selected scan engines as set in the code repository configuration for the project.
 
-            If the project is a manual scan project, the list of engines used in the latest
-            scan for the specified branch are returned.  If no scans are found in the project
-            for the specified branch, an empty list is returned.
+        If the project is a manual scan project, the list of engines used in the latest
+        scan for the specified branch are returned.  If no scans are found in the project
+        for the specified branch, an empty list is returned.
 
-            The names returned match those that are used in the run_a_scan API to indicate
-            which engines to execute a scan.  Note that requesting microengines like
-            2ms and scorecard are under the "microengines" configuration key in the
-            scan configuration payload.  While the engine names are correct, additional
-            steps are needed to form the scan configuration.
+        The names returned match those that are used in the run_a_scan API to indicate
+        which engines to execute a scan.  Note that requesting microengines like
+        2ms and scorecard are under the "microengines" configuration key in the
+        scan configuration payload.  While the engine names are correct, additional
+        steps are needed to form the scan configuration.
 
-            :param by_branch: The name of the branch used to retrieve the last scan.
-            :type by_branch: str
+        :param by_branch: The name of the branch used to retrieve the last scan.
+        :type by_branch: str
 
 
-            :rtype: List[str]
+        :rtype: List[str]
         """
         engines = []
 
@@ -457,45 +497,66 @@ class ProjectRepoConfig:
             # Use the engine configuration on the import
             cfg = await self.__get_repomgr_config()
 
-
             for k in cfg.keys():
                 if k in ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP.keys():
                     if isinstance(cfg.get(k), bool) and bool(cfg.get(k)):
                         engines.append(ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP[k])
-                    elif isinstance(cfg.get(k), dict) and bool(cfg.get(k, {}).get("value")):
+                    elif isinstance(cfg.get(k), dict) and bool(
+                        cfg.get(k, {}).get("value")
+                    ):
                         engines.append(ProjectRepoConfig.__CODE_REPO_ENABLE_NAME_MAP[k])
 
         if len(engines) == 0:
             # If no engines configured by the import config, use the engines for the last scan.
-            last_scan = json_on_ok(await retrieve_last_scan(self.__client, project_ids=[self.project_id], branch=by_branch, limit=1))
+            last_scan = json_on_ok(
+                await retrieve_last_scan(
+                    self.__client,
+                    project_ids=[self.project_id],
+                    branch=by_branch,
+                    limit=1,
+                )
+            )
             if len(last_scan) > 0:
                 latest_scan_header = list(last_scan.values())[0]
-                if 'engines' in latest_scan_header.keys():
-                    engines = latest_scan_header['engines']
+                if "engines" in latest_scan_header.keys():
+                    engines = latest_scan_header["engines"]
 
                 # Replace the microengines with the engine names
                 if "microengines" in engines:
                     engines.remove("microengines")
-                    scan_details = json_on_ok(await retrieve_scan_details(self.__client, latest_scan_header['id']))
-                    if "metadata" in scan_details.keys() and "configs" in scan_details['metadata'].keys():
-                        for engine_cfg in scan_details['metadata']['configs']:
+                    scan_details = json_on_ok(
+                        await retrieve_scan_details(
+                            self.__client, latest_scan_header["id"]
+                        )
+                    )
+                    if (
+                        "metadata" in scan_details.keys()
+                        and "configs" in scan_details["metadata"].keys()
+                    ):
+                        for engine_cfg in scan_details["metadata"]["configs"]:
                             engine_type = engine_cfg.get("type", None)
-                            if engine_type is not None and engine_type == "microengines":
-                                for micro_name in engine_cfg['value'].keys():
-                                    if engine_cfg['value'][micro_name].lower() == "true":
+                            if (
+                                engine_type is not None
+                                and engine_type == "microengines"
+                            ):
+                                for micro_name in engine_cfg["value"].keys():
+                                    if (
+                                        engine_cfg["value"][micro_name].lower()
+                                        == "true"
+                                    ):
                                         engines.append(micro_name)
 
         return engines
-    
+
     __CODE_REPO_ENABLE_NAME_MAP = {
-        "sastScannerEnabled" : "sast",
-        "scaScannerEnabled" : "sca",
-        "kicsScannerEnabled" : "kics",
-        "apiSecScannerEnabled" : "apisec",
-        "containerScannerEnabled" : "containers",
-        "ossfScoreCardScannerEnabled" : "scorecard",
-        "secretsDetectionScannerEnabled" : "2ms",
-        "aiscScannerEnabled" : "aisc"
+        "sastScannerEnabled": "sast",
+        "scaScannerEnabled": "sca",
+        "kicsScannerEnabled": "kics",
+        "apiSecScannerEnabled": "apisec",
+        "containerScannerEnabled": "containers",
+        "ossfScoreCardScannerEnabled": "scorecard",
+        "secretsDetectionScannerEnabled": "2ms",
+        "aiscScannerEnabled": "aisc",
     }
 
     __MICROENGINES = ["2ms", "scorecard"]
