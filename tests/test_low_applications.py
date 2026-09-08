@@ -71,7 +71,13 @@ class TestLowApplications(BaseTest):
         await self.execute_client_call(apps.retrieve_an_application, self.assert_response_ok, None, self.__appid)
         
     async def test_update_an_application(self):
-        await self.execute_client_call(apps.update_an_application, self.assert_response_ok, {'criticality' : lambda: 1}, self.__appid)
+        app_dict = json_on_ok(await apps.retrieve_an_application(self.client_oauth, self.__appid))
+        self.assertTrue(app_dict is not None)
+        app_dict['criticality'] = 3
+        await self.execute_client_call(apps.update_an_application, self.assert_response_ok, app_dict, self.__appid)
+
+    async def test_update_specific_application_fields(self):
+        await self.execute_client_call(apps.update_specific_application_fields, self.assert_response_ok, {'criticality' : lambda: 1}, self.__appid)
 
     async def test_delete_an_application(self):
         try:
