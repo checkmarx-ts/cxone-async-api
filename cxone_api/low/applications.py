@@ -33,7 +33,6 @@ async def retrieve_an_application(
     url = urljoin(client.api_endpoint, f"applications/{app_id}")
     return await client.exec_request(requests.get, url)
 
-
 async def update_an_application(
     client: CxOneClient, app_id: str, **kwargs
 ) -> requests.Response:
@@ -41,6 +40,12 @@ async def update_an_application(
     url = urljoin(client.api_endpoint, f"applications/{app_id}")
     return await client.exec_request(requests.put, url, json=kwargs)
 
+async def update_specific_application_fields(
+    client: CxOneClient, app_id: str, **kwargs
+) -> requests.Response:
+    """|LowLevelApiDocstring| Endpoint: /api/applications/{app_id}"""
+    url = urljoin(client.api_endpoint, f"applications/{app_id}")
+    return await client.exec_request(requests.patch, url, json=kwargs)
 
 async def delete_an_application(client: CxOneClient, app_id: str) -> requests.Response:
     """|LowLevelApiDocstring| Endpoint: /api/applications/{app_id}"""
