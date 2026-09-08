@@ -30,7 +30,7 @@ class TestLowApplications(BaseTest):
                     self.__appid = app_create_resp.json()['id']
                 else:
                     raise ResponseException("Unknown response creating an application:" \
-                            f"{app_create_resp}")
+                            f"{app_create_resp}: {app_create_resp.text}")
             else:
                 self.__appid = apps_resp.json()['applications'][0]['id']
 
