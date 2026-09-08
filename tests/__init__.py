@@ -1,6 +1,6 @@
 import unittest
 import os
-import asyncio
+import asyncio, inspect
 import time
 from cxone_api.high.scans import ScanLoader
 from cxone_api import CxOneClient, AuthRegionEndpoints, ApiRegionEndpoints
@@ -57,7 +57,7 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
                 for k in kwarg_generators.keys():
                     if not callable(kwarg_generators[k]):
                       kwargs[k] = kwarg_generators[k]
-                    elif not asyncio.iscoroutinefunction(kwarg_generators[k]):
+                    elif not inspect.iscoroutinefunction(kwarg_generators[k]):
                         kwargs[k] = kwarg_generators[k]()
                     else:
                         kwargs[k] = await kwarg_generators[k]()
@@ -65,7 +65,7 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
         async def apikey_task():
             with self.subTest("apikey"):
                 await fill_kwargs()
-                if asyncio.iscoroutinefunction(response_eval):
+                if inspect.iscoroutinefunction(response_eval):
                     await response_eval(await coro (self.client_apikey, *arg, **kwargs), self.client_apikey)
                 else:
                     response_eval(await coro(self.client_apikey, *arg, **kwargs), self.client_apikey)
@@ -73,7 +73,7 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
         async def oauth_task():
             with self.subTest("oauth"):
                 await fill_kwargs()
-                if asyncio.iscoroutinefunction(response_eval):
+                if inspect.iscoroutinefunction(response_eval):
                     await response_eval(await coro(self.client_oauth, *arg, **kwargs), self.client_oauth)
                 else:
                     response_eval(await coro(self.client_oauth, *arg, **kwargs), self.client_oauth)
