@@ -5,7 +5,7 @@ from requests.compat import urljoin
 
 
 async def retrieve_groups(client: CxOneClient, **kwargs) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/access-management/groups"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/access-management/groups"""
     url = join_query_dict(
         urljoin(client.api_endpoint, "access-management/groups"), kwargs
     )
@@ -13,7 +13,7 @@ async def retrieve_groups(client: CxOneClient, **kwargs) -> requests.Response:
 
 
 async def retrieve_users(client: CxOneClient, **kwargs) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/access-management/users"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/access-management/users"""
     url = join_query_dict(
         urljoin(client.api_endpoint, "access-management/users"), kwargs
     )
@@ -21,6 +21,6 @@ async def retrieve_users(client: CxOneClient, **kwargs) -> requests.Response:
 
 
 async def retrieve_clients(client: CxOneClient) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/access-management/clients"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/access-management/clients"""
     url = urljoin(client.api_endpoint, "access-management/clients")
     return await client.exec_request(requests.get, url)

@@ -9,7 +9,7 @@ from cxone_api.client import CxOneClient
 async def retrieve_list_of_presets(
     client: CxOneClient, scanner: str, **kwargs
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/presets"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/preset-manager/{scanner}/presets"""
     url = urljoin(client.api_endpoint, f"preset-manager/{scanner}/presets")
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)
@@ -18,7 +18,7 @@ async def retrieve_list_of_presets(
 async def create_a_new_preset(
     client: CxOneClient, scanner: str, data: Dict
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/presets"""
+    """|LowLevelApiDocstring| Verb: POST Endpoint: /api/preset-manager/{scanner}/presets"""
     url = urljoin(client.api_endpoint, f"preset-manager/{scanner}/presets")
     return await client.exec_request(requests.post, url, json=data)
 
@@ -26,7 +26,7 @@ async def create_a_new_preset(
 async def retrieve_list_of_queries_in_a_preset(
     client: CxOneClient, scanner: str, preset_id: str
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}"""
     url = urljoin(client.api_endpoint, f"preset-manager/{scanner}/presets/{preset_id}")
     return await client.exec_request(requests.get, url)
 
@@ -34,7 +34,7 @@ async def retrieve_list_of_queries_in_a_preset(
 async def update_a_preset(
     client: CxOneClient, scanner: str, preset_id: str, data: Dict
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}"""
+    """|LowLevelApiDocstring| Verb: PUT Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}"""
     url = urljoin(client.api_endpoint, f"preset-manager/{scanner}/presets/{preset_id}")
     return await client.exec_request(requests.put, url, json=data)
 
@@ -42,7 +42,7 @@ async def update_a_preset(
 async def delete_a_preset_by_id(
     client: CxOneClient, scanner: str, preset_id: str
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}"""
+    """|LowLevelApiDocstring| Verb: DELETE Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}"""
     url = urljoin(client.api_endpoint, f"preset-manager/{scanner}/presets/{preset_id}")
     return await client.exec_request(requests.delete, url)
 
@@ -50,7 +50,7 @@ async def delete_a_preset_by_id(
 async def clone_a_preset(
     client: CxOneClient, scanner: str, preset_id: str, data: Dict
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}/clone"""
+    """|LowLevelApiDocstring| Verb: POST Endpoint: /api/preset-manager/{scanner}/presets/{preset_id}/clone"""
     url = urljoin(
         client.api_endpoint, f"preset-manager/{scanner}/presets/{preset_id}/clone"
     )

@@ -34,7 +34,7 @@ from cxone_api.util import dashargs, join_query_dict
 async def retrieve_sast_scan_results(
     client: CxOneClient, **kwargs
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/sast-results"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/sast-results"""
     url = urljoin(client.api_endpoint, "sast-results")
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)

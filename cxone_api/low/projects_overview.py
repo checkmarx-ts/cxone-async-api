@@ -17,7 +17,7 @@ from ..client import CxOneClient
 async def retrieve_projects_overview(
     client: CxOneClient, **kwargs
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/projects-overview"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/projects-overview"""
     url = urljoin(client.api_endpoint, "projects-overview")
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)
@@ -37,7 +37,7 @@ async def retrieve_projects_overview(
 async def retrieve_aggregated_results(
     client: CxOneClient, **kwargs
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/projects-overview/aggregate"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/projects-overview/aggregate"""
     url = urljoin(client.api_endpoint, "projects-overview/aggregate")
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)

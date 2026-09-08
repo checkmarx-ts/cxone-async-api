@@ -8,7 +8,7 @@ from cxone_api.client import CxOneClient
 async def retrieve_list_of_query_families(
     client: CxOneClient, scanner: str, **kwargs
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/query-families"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/preset-manager/{scanner}/query-families"""
     url = urljoin(client.api_endpoint, f"preset-manager/{scanner}/query-families")
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)
@@ -18,7 +18,7 @@ async def retrieve_list_of_query_families(
 async def retrieve_list_of_queries_in_a_family(
     client: CxOneClient, scanner: str, family: str, **kwargs
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/preset-manager/{scanner}/query-families/{family}/queries"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/preset-manager/{scanner}/query-families/{family}/queries"""
     url = urljoin(
         client.api_endpoint, f"preset-manager/{scanner}/query-families/{family}/queries"
     )
