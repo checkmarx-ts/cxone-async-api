@@ -2,7 +2,7 @@
   "1.1.7" : [
     "Fixed the kwargs handling for ProjectRepoConfig settings toggle",
     "Support the configuration that allows commit hash tags to be added to scans",
-    "Add support for API that updates specific scan fields"
+    "Add support for the API that updates specific application fields"
   ], 
   "1.1.6" : [
     "AI skill added for documentation and coding assistance",
