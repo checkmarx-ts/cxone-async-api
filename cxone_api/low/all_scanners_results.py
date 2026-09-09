@@ -8,7 +8,7 @@ from requests.compat import urljoin
 async def retrieve_scan_results_all_scanners(
     client: CxOneClient, **kwargs
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/results"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/results"""
     url = urljoin(client.api_endpoint, "results")
     url = join_query_dict(url, kwargs)
     return await client.exec_request(requests.get, url)

@@ -33,8 +33,9 @@
     implementation does not interpret request or generate response data as documented in the
     OpenAPI specification.  In the event this is encountered by the user as they execute code,
     it is typically a defect that should be reported to Checkmarx support.
-* Low-level API methods indicate the endpoint of the API in the docstring.  The endpoint
-  can be used to match the OpenAPI specification related to that low-level API method.
+* Low-level API methods indicate the endpoint and HTTP verb of the API in the docstring.
+  This information can be used to match the OpenAPI specification related to that
+  low-level API method.
 * There may not be a method for implementing access to some API endpoints documented in the
   OpenAPI specifications.  In cases where the user needs to access an API endpoint that
   does not have a corresponding low-level API method in `cxone-async-api`:

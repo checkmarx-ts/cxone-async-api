@@ -1,6 +1,6 @@
 import unittest
 import os
-import asyncio
+import asyncio, inspect
 import time
 from cxone_api.high.scans import ScanLoader
 from cxone_api import CxOneClient, AuthRegionEndpoints, ApiRegionEndpoints
@@ -16,15 +16,22 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
         
         load_dotenv()
 
+        proxy_url = os.environ.get("TEST_PROXY_URL")
+        proxy = None
+        ssl_verify=True
+        if proxy_url is not None:
+            proxy = { "HTTPS" : proxy_url, "https" : proxy_url}
+            ssl_verify = False
+
         api_endpoint = ApiRegionEndpoints[os.environ['TEST_REGION']]()
         iam_endpoint = AuthRegionEndpoints[os.environ['TEST_REGION']](os.environ['TEST_TENANT_ID'])
 
         cls.client_oauth = CxOneClient.create_with_oauth(os.environ['TEST_OAUTH_CLIENT_ID'],
                                 os.environ['TEST_OAUTH_CLIENT_SECRET'], "UnitTest",
-                                iam_endpoint, api_endpoint)
+                                iam_endpoint, api_endpoint, ssl_verify=ssl_verify, proxy=proxy)
 
         cls.client_apikey = CxOneClient.create_with_api_key(os.environ['TEST_API_KEY'],
-                                "UnitTest", iam_endpoint, api_endpoint)
+                                "UnitTest", iam_endpoint, api_endpoint, ssl_verify=ssl_verify, proxy=proxy)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,13 +55,17 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
         async def fill_kwargs():
             if kwarg_generators is not None:
                 for k in kwarg_generators.keys():
-                    kwargs[k] = kwarg_generators[k]() if not asyncio.iscoroutinefunction(kwarg_generators[k]) else \
-                        await kwarg_generators[k]()
+                    if not callable(kwarg_generators[k]):
+                      kwargs[k] = kwarg_generators[k]
+                    elif not inspect.iscoroutinefunction(kwarg_generators[k]):
+                        kwargs[k] = kwarg_generators[k]()
+                    else:
+                        kwargs[k] = await kwarg_generators[k]()
 
         async def apikey_task():
             with self.subTest("apikey"):
                 await fill_kwargs()
-                if asyncio.iscoroutinefunction(response_eval):
+                if inspect.iscoroutinefunction(response_eval):
                     await response_eval(await coro (self.client_apikey, *arg, **kwargs), self.client_apikey)
                 else:
                     response_eval(await coro(self.client_apikey, *arg, **kwargs), self.client_apikey)
@@ -62,7 +73,7 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
         async def oauth_task():
             with self.subTest("oauth"):
                 await fill_kwargs()
-                if asyncio.iscoroutinefunction(response_eval):
+                if inspect.iscoroutinefunction(response_eval):
                     await response_eval(await coro(self.client_oauth, *arg, **kwargs), self.client_oauth)
                 else:
                     response_eval(await coro(self.client_oauth, *arg, **kwargs), self.client_oauth)

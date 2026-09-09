@@ -9,50 +9,34 @@ from asyncio import Lock
 
 class TestLowApplications(BaseTest):
 
-    DEFAULT_APP_NAME = "DELETE_ME_APP"
-
     __lock = Lock()
 
     async def asyncSetUp(self):
         async with TestLowApplications.__lock:
             self.__delete_app_names = []
             
-            apps_resp = await apps.retrieve_applications_info(self.client_oauth, 
-                            name=TestLowApplications.DEFAULT_APP_NAME)
-
-            self.assert_response_ok(apps_resp, self.client_oauth)
-
-            if apps_resp.json()['applications'] is None or len(apps_resp.json()['applications']) == 0:
-                app_create_resp = await apps.create_an_application(self.client_oauth,
-                                    name=TestLowApplications.DEFAULT_APP_NAME,
-                                    description="regression testing purposes")
-                if app_create_resp.ok:
-                    self.__appid = app_create_resp.json()['id']
-                else:
-                    raise ResponseException("Unknown response creating an application:" \
-                            f"{app_create_resp}")
+            app_create_resp = await apps.create_an_application(self.client_oauth,
+                                name=self.__gen_app_name(),
+                                description="regression testing purposes")
+            if app_create_resp.ok:
+                self.__appid = app_create_resp.json()['id']
             else:
-                self.__appid = apps_resp.json()['applications'][0]['id']
-
-
-
-            
+                raise ResponseException("Unknown response creating an application:" \
+                        f"{app_create_resp}: {app_create_resp.text}")
 
     async def asyncTearDown(self):
-        async for appinfo in page_generator(apps.retrieve_applications_info, 
-                'applications', client=self.client_oauth):
-            if appinfo['name'] in self.__delete_app_names:
-                await apps.delete_an_application(self.client_oauth, appinfo['id'])
+        async with TestLowApplications.__lock:
+          async for appinfo in page_generator(apps.retrieve_applications_info, 
+                  'applications', client=self.client_oauth):
+              if appinfo['name'] in self.__delete_app_names:
+                  await apps.delete_an_application(self.client_oauth, appinfo['id'])
 
-        self.__delete_app_names = []
+          self.__delete_app_names = []
 
     def __gen_app_name(self):
         app_name = str(uuid.uuid4())
         self.__delete_app_names.append(app_name)
         return app_name
-
-    def __gen_app_name_no_record(self):
-        return str(uuid.uuid4())
 
 
     async def test_canary(self):
@@ -71,7 +55,13 @@ class TestLowApplications(BaseTest):
         await self.execute_client_call(apps.retrieve_an_application, self.assert_response_ok, None, self.__appid)
         
     async def test_update_an_application(self):
-        await self.execute_client_call(apps.update_an_application, self.assert_response_ok, {'criticality' : lambda: 1}, self.__appid)
+        app_dict = json_on_ok(await apps.retrieve_an_application(self.client_oauth, self.__appid))
+        self.assertTrue(app_dict is not None)
+        app_dict['criticality'] = 3
+        await self.execute_client_call(apps.update_an_application, self.assert_response_ok, app_dict, self.__appid)
+
+    async def test_update_specific_application_fields(self):
+        await self.execute_client_call(apps.update_specific_application_fields, self.assert_response_ok, {'criticality' : lambda: 1}, self.__appid)
 
     async def test_delete_an_application(self):
         try:
@@ -80,7 +70,7 @@ class TestLowApplications(BaseTest):
                 appid = json_on_ok(response)['id']
                 self.assert_response_ok(await apps.delete_an_application(client, appid), client)
 
-            await self.execute_client_call(apps.create_an_application, delete_app_id, kwarg_generators = {'name' : self.__gen_app_name_no_record})
+            await self.execute_client_call(apps.create_an_application, delete_app_id, kwarg_generators = {'name' : self.__gen_app_name})
         except ResponseException as ex:
             self.fail(ex)
         
@@ -99,7 +89,7 @@ class TestLowApplications(BaseTest):
             response = await apps.delete_an_application_rule(client, appid, ruleid)
             self.assertTrue(response.ok)
 
-        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name_no_record})
+        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name})
         
     async def test_rule_appears_in_list(self):
         async def on_app_create(response, client):
@@ -109,7 +99,7 @@ class TestLowApplications(BaseTest):
            
             self.assertIn(ruleid, [x['id'] for x in json_on_ok(await apps.retrieve_list_of_application_rules(client, appid))])
 
-        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name_no_record})
+        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name})
 
     async def test_retrieve_app_rule(self):
         async def on_app_create(response, client):
@@ -118,7 +108,7 @@ class TestLowApplications(BaseTest):
                                                            value="foo"))['id']
             self.assertTrue(json_on_ok(await apps.retrieve_an_application_rule(client, appid, ruleid))['id'] == ruleid)
 
-        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name_no_record})
+        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name})
 
 
     async def test_update_app_rule(self):
@@ -129,7 +119,7 @@ class TestLowApplications(BaseTest):
             
             self.assertTrue((await apps.update_an_application_rule(client, appid, ruleid, type="project.tag.value.exists", value="bar")).ok)
 
-        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name_no_record})
+        await self.execute_client_call(apps.create_an_application, on_app_create, kwarg_generators = {'name' : self.__gen_app_name})
 
 if __name__ == "__main__":
     unittest.main()

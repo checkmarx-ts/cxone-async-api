@@ -8,7 +8,7 @@ from ..client import CxOneClient
 async def retrieve_scan_log(
     client: CxOneClient, scanid: str, stream=False
 ) -> requests.Response:
-    """|LowLevelApiDocstring| Endpoint: /api/logs/{scanid}/sast"""
+    """|LowLevelApiDocstring| Verb: GET Endpoint: /api/logs/{scanid}/sast"""
     url = urljoin(client.api_endpoint, f"logs/{scanid}/sast")
     response = await client.exec_request(requests.get, url)
 

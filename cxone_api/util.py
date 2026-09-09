@@ -207,7 +207,14 @@ async def page_generator(coro : Coroutine, array_element : str = None, offset_pa
             try:
                 kwargs[offset_param] = offset
                 json = (await coro(**kwargs)).json()
-                buf = json[array_element] if array_element is not None else json
+
+                if array_element is not None and array_element in json.keys():
+                  buf = json[array_element]
+                elif array_element is not None and array_element not in json.keys():
+                    buf = None
+                else:
+                  buf = json
+
                 if isinstance(buf, dict):
                     if key_element_name is None:
                         buf = [buf[k] for k in buf.keys()]
