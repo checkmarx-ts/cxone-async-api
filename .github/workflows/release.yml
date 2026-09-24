@@ -131,17 +131,18 @@ jobs:
           echo '' >> release.md
           echo '' >> release.md
           echo '## Installation' >> release.md
-          echo 'Installation can be performed by adding one of the following lines to your `requirements.txt` file:' >> release.md
           WHEEL_NAME=$(basename $(ls dist/*.whl))
           WHEEL_HASH=$(pip hash dist/$WHEEL_NAME | grep "^--")
           RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ needs.make-tag-string.outputs.tag }}/$WHEEL_NAME"
 
+          echo 'You can install the package from PyPI by adding the following line to your `requirements.txt` file:' >> release.md
           echo '```' >> release.md
-          echo $RELEASE_URL >> release.md
+          echo $RELEASE_URL==${{ needs.make-tag-string.outputs.release_version }} >> release.md
           echo '```' >> release.md
 
+          echo 'You can also install the package directly from the Github release by adding the following line to your `requirements.txt` file:' >> release.md
           echo '```' >> release.md
-          echo "git+https://github.com/${{ github.repository }}.git@${{ needs.make-tag-string.outputs.tag }}" >> release.md
+          echo $RELEASE_URL >> release.md
           echo '```' >> release.md
 
           echo "## Hashes" >> release.md
