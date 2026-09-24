@@ -46,3 +46,7 @@ things you may want to do with the API.
 ### Documentation
 
 The Github repository release artifacts includes a PDF of the API documentation.  The API docstrings will also appear for inline help on most IDEs.  
+
+## Change Log
+
+The release page in the Github repository documents changes for each release.
