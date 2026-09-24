@@ -163,10 +163,35 @@ jobs:
           prerelease: ${{ inputs.prerelease }}
           tag: ${{ needs.make-tag-string.outputs.tag }}
 
+  publish-pypi:
+    runs-on: cx-public-ubuntu-x64
+    needs: [publish-release, make-tag-string]
+    permissions:
+      id-token: write
+    if: needs.publish-release.result == 'success'
+    steps:
+
+      - name: Download wheel artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: wheel-${{ github.run_number }}
+          path: ./dist
+
+      - name: PyPI Publish to Test
+        uses: step-security/gh-action-pypi-publish@ef63b3f651e4131083ceb916595ce721a1959385 # v1.14.0
+        if: ${{ inputs.prerelease }}
+        with:
+          verbose: true
+          repository-url: https://test.pypi.org/legacy/
+
 
   artifact-cleanup:
     runs-on: cx-public-ubuntu-x64
-    needs: [publish-release, build-api-docs, build-wheel]
+    needs: 
+      - publish-pypi
+      - publish-release
+      - build-api-docs
+      - build-wheel
     if: always() && ( needs.build-api-docs.result == 'success' || needs.build-wheel.result == 'success' )
     steps:
       - uses: step-security/delete-artifact@9a5b2d6793eb97cf052deddb87cd073aabb77385 # v6.0.0
