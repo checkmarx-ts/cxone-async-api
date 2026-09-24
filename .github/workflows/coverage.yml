@@ -53,6 +53,6 @@ jobs:
           export PYTHONPATH=$(pwd)
           echo "__version__='0.0.0'" > cxone_api/__version__.py
           python -m build
-          pip install -r ./cxone_api.egg-info/requires.txt
+          pip install -r ./cxone_async_api.egg-info/requires.txt
           coverage run -m unittest -f -v
           coverage report
