@@ -4,6 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cxone-async-api"
+readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     "requests>=2.33.0",
