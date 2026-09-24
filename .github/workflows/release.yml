@@ -24,7 +24,7 @@ jobs:
     runs-on: cx-public-ubuntu-x64
     outputs:
       tag: ${{ steps.tag-string.outputs.tag }}
-      release_version: ${{ steps.tag-string.outputs.whl_tag }}
+      release_version: ${{ steps.tag-string.outputs.release_version }}
     permissions:
       contents: write
     steps:
