@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cxone_api"
+name = "cxone-async-api"
 dynamic = ["version"]
 dependencies = [
     "requests>=2.33.0",
