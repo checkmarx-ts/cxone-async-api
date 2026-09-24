@@ -1,6 +1,7 @@
 {
   "1.1.8" : [
-    "Adjustments for PyPI publishing."
+    "Adjustments for PyPI publishing.",
+    "Fix issue with high level group objects using PosixPath instead of PurePosixPath."
   ],
   "1.1.7" : [
     "Fixed the kwargs handling for ProjectRepoConfig settings toggle",

@@ -137,7 +137,7 @@ jobs:
 
           echo 'You can install the package from PyPI by adding the following line to your `requirements.txt` file:' >> release.md
           echo '```' >> release.md
-          echo $RELEASE_URL==${{ needs.make-tag-string.outputs.release_version }} >> release.md
+          echo cxone-async-api==${{ needs.make-tag-string.outputs.tag }} >> release.md
           echo '```' >> release.md
 
           echo 'You can also install the package directly from the Github release by adding the following line to your `requirements.txt` file:' >> release.md

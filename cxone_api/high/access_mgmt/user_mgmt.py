@@ -5,13 +5,13 @@ from ...low.access_mgmt.user_mgmt import retrieve_groups
 from ...low.projects import retrieve_list_of_projects
 import asyncio
 from dataclasses import dataclass
-from pathlib import PosixPath
+from pathlib import PurePosixPath
 
 
 @dataclass(frozen=True)
 class GroupDescriptor:
   id : str
-  path : PosixPath
+  path : PurePosixPath
   name : str
   parent : Any = None
   roles : Any = None
@@ -40,7 +40,7 @@ class Groups:
     else:
       parent = None
 
-    return GroupDescriptor(json['id'], "/" / PosixPath(json['name']), json.get('briefName'), parent, json.get('roles'))
+    return GroupDescriptor(json['id'], "/" / PurePosixPath(json['name']), json.get('briefName'), parent, json.get('roles'))
 
   async def __populate_indexes(self):
     async with self.__lock:
@@ -48,7 +48,7 @@ class Groups:
         self.__indexed = True
         async for g in page_generator(retrieve_groups, client=self.__client):
           self.__by_gid[g['id']] = g
-          self.__by_path[str("/" / PosixPath(g['name']))] = g
+          self.__by_path[str("/" / PurePosixPath(g['name']))] = g
 
   async def get_path_list(self) -> List[str]:
     """Returns a list of group paths.
