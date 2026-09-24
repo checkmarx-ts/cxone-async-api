@@ -177,12 +177,10 @@ jobs:
           name: wheel-${{ github.run_number }}
           path: ./dist
 
-      - name: PyPI Publish to Test
+      - name: PyPI Publish
         uses: step-security/gh-action-pypi-publish@ef63b3f651e4131083ceb916595ce721a1959385 # v1.14.0
-        if: ${{ inputs.prerelease }}
         with:
           verbose: true
-          repository-url: https://test.pypi.org/legacy/
 
 
   artifact-cleanup:
@@ -202,7 +200,7 @@ jobs:
             wheel-${{ github.run_number }}
 
   remove-tag-on-failure:
-    needs: [create-tag, publish-release, make-tag-string]
+    needs: [create-tag, publish-pypi, make-tag-string]
     runs-on: cx-public-ubuntu-x64
     permissions:
       contents: write
