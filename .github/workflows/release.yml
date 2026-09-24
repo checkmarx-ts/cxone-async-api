@@ -19,86 +19,74 @@ permissions:
   contents: read
 
 jobs:
-  make-tag-string:
-    if: ${{ inputs.version != '' }}
+
+  tag-repo:
     runs-on: cx-public-ubuntu-x64
     outputs:
       tag: ${{ steps.tag-string.outputs.tag }}
-      release_version: ${{ steps.tag-string.outputs.release_version }}
+      release_version: ${{ steps.tag-string.outputs.whl_tag }}
+    permissions:
+      contents: write
     steps:
-      - name: Create tag string
+      - name: Create tag
+        id: tag-string
         run: |
+
           [ ${{ inputs.prerelease }} = false ] && echo "tag=${{ inputs.version }}" >> $GITHUB_OUTPUT || \
             echo "tag=${{ inputs.version }}rc$GITHUB_RUN_NUMBER" >> $GITHUB_OUTPUT
 
           echo "release_version=${{ inputs.version }}" >> $GITHUB_OUTPUT
-        id: tag-string
 
-  validate-no-tag:
-    if: ${{ inputs.version != '' }}
-    runs-on: cx-public-ubuntu-x64
-    needs: [make-tag-string]
-    steps:
-      - name: Fetch Code
-        continue-on-error: true
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        with:
-          ref: ${{ needs.make-tag-string.outputs.tag }}
-
-      - name: Fail if tag ${{ needs.make-tag-string.outputs.tag }} exists
+      - name: Validate no tag
         run: |
-          [[ $(git describe --tags) ==  ${{ needs.make-tag-string.outputs.tag }} ]] && exit 1 || :
+          set +e
+          git clone --branch ${{ steps.tag-string.outputs.tag }} --depth=1 $GITHUB_SERVER_URL/$GITHUB_REPOSITORY > /dev/null 2>&1 && exit 1
+          set -e
+
+      - name: Fetch Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      - name: Set Tag
+        run: |
+          git config --global user.email "${{ github.triggering_actor }}"
+          git config --global user.name "${{ github.triggering_actor }}"
+          git tag '${{ steps.tag-string.outputs.tag }}'
+          git push origin '${{ steps.tag-string.outputs.tag }}'
+
 
   call-unit-tests-coverage:
     uses: ./.github/workflows/coverage.yml
     secrets: inherit
-    needs: [create-tag, make-tag-string]
+    needs: [tag-repo]
     with:
       skip: ${{ inputs.skiputs }}
-      tag: ${{ needs.make-tag-string.outputs.tag }}
+      tag: ${{ needs.tag-repo.outputs.tag }}
   
 
   build-api-docs:
     uses: ./.github/workflows/build-api-docs.yml
-    needs: [create-tag, make-tag-string]
+    needs: [tag-repo]
     secrets: inherit
     with:
-      tag: ${{ needs.make-tag-string.outputs.tag }}
+      tag: ${{ needs.tag-repo.outputs.tag }}
 
   build-wheel:
     uses: ./.github/workflows/build-wheel.yml
-    needs: [create-tag, make-tag-string]
+    needs: [tag-repo]
     secrets: inherit
     with:
-      tag: ${{ needs.make-tag-string.outputs.tag }}
-
-  create-tag:
-    permissions:
-      contents: write
-    if: ${{ inputs.version != '' }}
-    runs-on: cx-public-ubuntu-x64
-    needs: [make-tag-string, validate-no-tag]
-    steps:
-      - name: Fetch Code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-        
-      - name: Set Version
-        run: |
-          git config --global user.email "${{ github.triggering_actor }}"
-          git config --global user.name "${{ github.triggering_actor }}"
-          git tag ${{ needs.make-tag-string.outputs.tag }}
-          git push origin --tags
+      tag: ${{ needs.tag-repo.outputs.tag }}
 
   publish-release:
     permissions:
       contents: write
     runs-on: cx-public-ubuntu-x64
-    needs: [build-wheel, build-api-docs, call-unit-tests-coverage, make-tag-string]
+    needs: [build-wheel, build-api-docs, call-unit-tests-coverage, tag-repo]
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          ref: ${{ needs.make-tag-string.outputs.tag }}
+          ref: ${{ needs.tag-repo.outputs.tag }}
 
       - name: Download apidoc pdf artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
@@ -124,20 +112,20 @@ jobs:
 
       - name: Make release text
         run: |
-          echo "# Checkmarx One Async API ${{ needs.make-tag-string.outputs.tag }}" > release.md
+          echo "# Checkmarx One Async API ${{ needs.tag-repo.outputs.tag }}" > release.md
 
-          python3 ./.github/workflows/scripts/json2md.py ./release-notes.json ${{ needs.make-tag-string.outputs.release_version }} >> release.md
+          python3 ./.github/workflows/scripts/json2md.py ./release-notes.json ${{ needs.tag-repo.outputs.release_version }} >> release.md
 
           echo '' >> release.md
           echo '' >> release.md
           echo '## Installation' >> release.md
           WHEEL_NAME=$(basename $(ls dist/*.whl))
           WHEEL_HASH=$(pip hash dist/$WHEEL_NAME | grep "^--")
-          RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ needs.make-tag-string.outputs.tag }}/$WHEEL_NAME"
+          RELEASE_URL="https://github.com/${{ github.repository }}/releases/download/${{ needs.tag-repo.outputs.tag }}/$WHEEL_NAME"
 
           echo 'You can install the package from PyPI by adding the following line to your `requirements.txt` file:' >> release.md
           echo '```' >> release.md
-          echo cxone-async-api==${{ needs.make-tag-string.outputs.tag }} >> release.md
+          echo cxone-async-api==${{ needs.tag-repo.outputs.tag }} >> release.md
           echo '```' >> release.md
 
           echo 'You can also install the package directly from the Github release by adding the following line to your `requirements.txt` file:' >> release.md
@@ -160,16 +148,15 @@ jobs:
           artifactErrorsFailBuild: true
           artifacts: ./dist/*.whl,./dist/*.pdf,./dist/*.zip
           bodyFile: release.md
-          name: ${{ needs.make-tag-string.outputs.tag }}
+          name: ${{ needs.tag-repo.outputs.tag }}
           prerelease: ${{ inputs.prerelease }}
-          tag: ${{ needs.make-tag-string.outputs.tag }}
+          tag: ${{ needs.tag-repo.outputs.tag }}
 
   publish-pypi:
     runs-on: cx-public-ubuntu-x64
-    needs: [publish-release, make-tag-string]
+    needs: [publish-release, tag-repo]
     permissions:
       id-token: write
-    if: needs.publish-release.result == 'success'
     steps:
 
       - name: Download wheel artifact
@@ -201,14 +188,24 @@ jobs:
             wheel-${{ github.run_number }}
 
   remove-tag-on-failure:
-    needs: [create-tag, publish-pypi, make-tag-string]
+    needs: [publish-pypi, tag-repo]
     runs-on: cx-public-ubuntu-x64
     permissions:
       contents: write
-    if:  (failure() || cancelled()) && needs.create-tag.result == 'success'
+    if:  (failure() || cancelled()) && needs.tag-repo.result == 'success'
     steps:
       - name: Fetch Code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Remove CodeTag
-        run: git push origin ':refs/tags/${{ needs.make-tag-string.outputs.tag }}'
+        run: git push origin ':refs/tags/${{ needs.tag-repo.outputs.tag }}'
+
+  remove-release-on-failure:
+    needs: [publish-release, tag-repo]
+    runs-on: cx-public-ubuntu-x64
+    permissions:
+      contents: write
+    if:  (failure() || cancelled()) && needs.tag-repo.result == 'success' && needs.publish-release.result == 'success'
+    steps:
+      - name: Remove Release
+        run: gh release delete ${{ needs.tag-repo.outputs.tag }} --yes
