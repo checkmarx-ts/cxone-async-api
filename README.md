@@ -2,7 +2,7 @@
 
 This is a Python library that implements methods that support asynchronous access of the [CheckmarxOne REST API](https://checkmarx.stoplight.io/docs/checkmarx-one-api-reference-guide/).  At the lowest level, it is a simple wrapper for [Python Requests](https://pypi.org/project/requests/).
 
-The library is organized into two parts:
+The library is organized into logical layers:
 
 * A raw layer that can invoke Checkmarx One API endpoints that have yet to be documented or implemented in the low-level API layer.
 * A low-level API that is a very thin layer or helper methods used to invoke API endpoints via `Requests`.
