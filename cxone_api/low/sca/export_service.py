@@ -9,7 +9,6 @@ async def create_a_report(client: CxOneClient, **kwargs) -> requests.Response:
     url = urljoin(client.api_endpoint, "sca/export/requests")
     return await client.exec_request(requests.post, url, json=kwargs)
 
-
 async def retrieve_report_status(
     client: CxOneClient, exportId: str
 ) -> requests.Response:
