@@ -19,6 +19,7 @@
 * A good rule to follow is to avoid making more than two concurrent requests to any Checkmarx One API.
 * Proxy dictionary entries have a key corresponding to a protocol (e.g. `https` is typically the only
   protocol used with Checkmarx One) and a value with a URL to the proxy (e.g. `http://localhost:8080`).
+* Avoid using methods marked `deprecated` either by an explicit annotation or noted in the documentation.
 
 
 ## Low Level API Important Points
