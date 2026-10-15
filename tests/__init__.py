@@ -6,6 +6,7 @@ from cxone_api.high.scans import ScanLoader
 from cxone_api import CxOneClient, AuthRegionEndpoints, ApiRegionEndpoints
 from dotenv import load_dotenv
 
+
 class BaseTest(unittest.IsolatedAsyncioTestCase):
     DEFAULT_REPO = "https://github.com/nleach999/SimplyVulnerable.git"
     DEFAULT_BRANCH = "master"
@@ -13,30 +14,43 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
 
     @classmethod
     def setUpClass(cls):
-        
+
         load_dotenv()
 
         proxy_url = os.environ.get("TEST_PROXY_URL")
         proxy = None
-        ssl_verify=True
+        ssl_verify = True
         if proxy_url is not None:
-            proxy = { "HTTPS" : proxy_url, "https" : proxy_url}
+            proxy = {"HTTPS": proxy_url, "https": proxy_url}
             ssl_verify = False
 
-        api_endpoint = ApiRegionEndpoints[os.environ['TEST_REGION']]()
-        iam_endpoint = AuthRegionEndpoints[os.environ['TEST_REGION']](os.environ['TEST_TENANT_ID'])
+        api_endpoint = ApiRegionEndpoints[os.environ["TEST_REGION"]]()
+        iam_endpoint = AuthRegionEndpoints[os.environ["TEST_REGION"]](
+            os.environ["TEST_TENANT_ID"]
+        )
 
-        cls.client_oauth = CxOneClient.create_with_oauth(os.environ['TEST_OAUTH_CLIENT_ID'],
-                                os.environ['TEST_OAUTH_CLIENT_SECRET'], "UnitTest",
-                                iam_endpoint, api_endpoint, ssl_verify=ssl_verify, proxy=proxy)
+        cls.client_oauth = CxOneClient.create_with_oauth(
+            os.environ["TEST_OAUTH_CLIENT_ID"],
+            os.environ["TEST_OAUTH_CLIENT_SECRET"],
+            "UnitTest",
+            iam_endpoint,
+            api_endpoint,
+            ssl_verify=ssl_verify,
+            proxy=proxy,
+        )
 
-        cls.client_apikey = CxOneClient.create_with_api_key(os.environ['TEST_API_KEY'],
-                                "UnitTest", iam_endpoint, api_endpoint, ssl_verify=ssl_verify, proxy=proxy)
+        cls.client_apikey = CxOneClient.create_with_api_key(
+            os.environ["TEST_API_KEY"],
+            "UnitTest",
+            iam_endpoint,
+            api_endpoint,
+            ssl_verify=ssl_verify,
+            proxy=proxy,
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
-    
+
     async def wait_for_scan_completion(self, client, scanid):
         start = time.time()
         while time.time() - start < BaseTest.MAX_SCAN_SECONDS:
@@ -46,17 +60,18 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
                 continue
             else:
                 return inspector.successful
-        
-        return False
-    
 
-    async def execute_client_call(self, coro, response_eval, kwarg_generators=None, *arg, **kwargs):
+        return False
+
+    async def execute_client_call(
+        self, coro, response_eval, kwarg_generators=None, *arg, **kwargs
+    ):
 
         async def fill_kwargs():
             if kwarg_generators is not None:
                 for k in kwarg_generators.keys():
                     if not callable(kwarg_generators[k]):
-                      kwargs[k] = kwarg_generators[k]
+                        kwargs[k] = kwarg_generators[k]
                     elif not inspect.iscoroutinefunction(kwarg_generators[k]):
                         kwargs[k] = kwarg_generators[k]()
                     else:
@@ -66,19 +81,31 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
             with self.subTest("apikey"):
                 await fill_kwargs()
                 if inspect.iscoroutinefunction(response_eval):
-                    await response_eval(await coro (self.client_apikey, *arg, **kwargs), self.client_apikey)
+                    await response_eval(
+                        await coro(self.client_apikey, *arg, **kwargs),
+                        self.client_apikey,
+                    )
                 else:
-                    response_eval(await coro(self.client_apikey, *arg, **kwargs), self.client_apikey)
+                    response_eval(
+                        await coro(self.client_apikey, *arg, **kwargs),
+                        self.client_apikey,
+                    )
 
         async def oauth_task():
             with self.subTest("oauth"):
                 await fill_kwargs()
                 if inspect.iscoroutinefunction(response_eval):
-                    await response_eval(await coro(self.client_oauth, *arg, **kwargs), self.client_oauth)
+                    await response_eval(
+                        await coro(self.client_oauth, *arg, **kwargs), self.client_oauth
+                    )
                 else:
-                    response_eval(await coro(self.client_oauth, *arg, **kwargs), self.client_oauth)
+                    response_eval(
+                        await coro(self.client_oauth, *arg, **kwargs), self.client_oauth
+                    )
 
-        await asyncio.gather(asyncio.create_task(oauth_task()), asyncio.create_task(apikey_task()))
+        await asyncio.gather(
+            asyncio.create_task(oauth_task()), asyncio.create_task(apikey_task())
+        )
 
     def assert_response_ok(self, response, client):
         if not response.ok:
