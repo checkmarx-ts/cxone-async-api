@@ -20,7 +20,7 @@ async def retrieve_report_status(
 async def retrieve_list_of_report_formats(client: CxOneClient) -> requests.Response:
     """|LowLevelApiDocstring| Verb: GET Endpoint: /api/sca/export/file-formats"""
     url = urljoin(client.api_endpoint, "sca/export/file-formats")
-    return await client.exec_request(requests.post, url)
+    return await client.exec_request(requests.get, url)
 
 async def download_a_report(client: CxOneClient, exportId: str) -> requests.Response:
     """|LowLevelApiDocstring| Verb: GET Endpoint: /api/sca/export/requests/{exportId}/download"""
