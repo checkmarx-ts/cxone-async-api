@@ -7,7 +7,7 @@ from typing import List
 
 async def retrieve_configurations(client: CxOneClient, **kwargs) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: GET
     Endpoint: /api/sca/registries-configuration/configurations
     """
@@ -17,115 +17,167 @@ async def retrieve_configurations(client: CxOneClient, **kwargs) -> requests.Res
     return await client.exec_request(requests.get, url)
 
 
-
-async def create_a_configuration(client: CxOneClient, configurationName : str, packageManager : str, content : str) -> requests.Response:
+async def create_a_configuration(
+    client: CxOneClient, configurationName: str, packageManager: str, content: str
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: POST
     Endpoint: /api/sca/registries-configuration/configurations
     """
     url = urljoin(client.api_endpoint, "sca/registries-configuration/configurations")
     payload = {
-        "configurationName" : configurationName,
-        "packageManager" : packageManager,
-        "content" : content
+        "configurationName": configurationName,
+        "packageManager": packageManager,
+        "content": content,
     }
 
     return await client.exec_request(requests.post, url, json=payload)
 
-async def retrieve_a_configuration(client: CxOneClient, configId : str) -> requests.Response:
+
+async def retrieve_a_configuration(
+    client: CxOneClient, configId: str
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: GET
     Endpoint: /api/sca/registries-configuration/configurations/{configId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/{configId}")
+    url = urljoin(
+        client.api_endpoint, f"sca/registries-configuration/configurations/{configId}"
+    )
 
     return await client.exec_request(requests.get, url)
 
-async def delete_a_configuration(client: CxOneClient, configId : str) -> requests.Response:
+
+async def delete_a_configuration(
+    client: CxOneClient, configId: str
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: DELETE
     Endpoint: /api/sca/registries-configuration/configurations/{configId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/{configId}")
+    url = urljoin(
+        client.api_endpoint, f"sca/registries-configuration/configurations/{configId}"
+    )
 
     return await client.exec_request(requests.delete, url)
 
-async def modify_a_configuration(client: CxOneClient, configId : str, configurationName : str, packageManager : str, content : str) -> requests.Response:
+
+async def modify_a_configuration(
+    client: CxOneClient,
+    configId: str,
+    configurationName: str,
+    packageManager: str,
+    content: str,
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: PATCH
     Endpoint: /api/sca/registries-configuration/configurations/{configId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/{configId}")
+    url = urljoin(
+        client.api_endpoint, f"sca/registries-configuration/configurations/{configId}"
+    )
 
     payload = {
-        "configurationName" : configurationName,
-        "packageManager" : packageManager,
-        "content" : content
+        "configurationName": configurationName,
+        "packageManager": packageManager,
+        "content": content,
     }
 
     return await client.exec_request(requests.patch, url, json=payload)
 
 
-async def retrieve_a_project_configuration(client: CxOneClient, projectId : str) -> requests.Response:
+async def retrieve_a_project_configuration(
+    client: CxOneClient, projectId: str
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: GET
     Endpoint: /api/sca/registries-configuration/configurations/project/{projectId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/project/{projectId}")
+    url = urljoin(
+        client.api_endpoint,
+        f"sca/registries-configuration/configurations/project/{projectId}",
+    )
 
     return await client.exec_request(requests.get, url)
 
-async def associate_configurations_with_a_project(client: CxOneClient, projectId : str, configurationIds : List[str]) -> requests.Response:
+
+async def associate_configurations_with_a_project(
+    client: CxOneClient, projectId: str, configurationIds: List[str]
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: POST
     Endpoint: /api/sca/registries-configuration/configurations/project/{projectId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/project/{projectId}")
+    url = urljoin(
+        client.api_endpoint,
+        f"sca/registries-configuration/configurations/project/{projectId}",
+    )
 
     return await client.exec_request(requests.post, url, json=configurationIds)
 
-async def disassociate_configurations_from_a_project(client: CxOneClient, projectId : str, configurationIds : List[str]) -> requests.Response:
+
+async def disassociate_configurations_from_a_project(
+    client: CxOneClient, projectId: str, configurationIds: List[str]
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: DELETE
     Endpoint: /api/sca/registries-configuration/configurations/project/{projectId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/project/{projectId}")
+    url = urljoin(
+        client.api_endpoint,
+        f"sca/registries-configuration/configurations/project/{projectId}",
+    )
 
     return await client.exec_request(requests.delete, url, json=configurationIds)
 
-async def retrieve_configurations_with_tag(client: CxOneClient, tagId : str) -> requests.Response:
+
+async def retrieve_configurations_with_tag(
+    client: CxOneClient, tagId: str
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: GET
     Endpoint: /api/sca/registries-configuration/configurations/tag/{tagId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/tag/{tagId}")
+    url = urljoin(
+        client.api_endpoint, f"sca/registries-configuration/configurations/tag/{tagId}"
+    )
 
     return await client.exec_request(requests.get, url)
 
-async def associate_configurations_with_tag(client: CxOneClient, tagId : str, configurationIds : List[str]) -> requests.Response:
+
+async def associate_configurations_with_tag(
+    client: CxOneClient, tagId: str, configurationIds: List[str]
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: POST
     Endpoint: /api/sca/registries-configuration/configurations/tag/{tagId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/tag/{tagId}")
+    url = urljoin(
+        client.api_endpoint, f"sca/registries-configuration/configurations/tag/{tagId}"
+    )
 
     return await client.exec_request(requests.post, url, json=configurationIds)
 
-async def disassociate_configurations_from_tag(client: CxOneClient, tagId : str) -> requests.Response:
+
+async def disassociate_configurations_from_tag(
+    client: CxOneClient, tagId: str
+) -> requests.Response:
     """|LowLevelApiDocstring|
-    
+
     Verb: DELETE
     Endpoint: /api/sca/registries-configuration/configurations/tag/{tagId}
     """
-    url = urljoin(client.api_endpoint, f"sca/registries-configuration/configurations/tag/{tagId}")
+    url = urljoin(
+        client.api_endpoint, f"sca/registries-configuration/configurations/tag/{tagId}"
+    )
 
     return await client.exec_request(requests.delete, url)
