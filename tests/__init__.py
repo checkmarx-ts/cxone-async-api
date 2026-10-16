@@ -80,30 +80,35 @@ class BaseTest(unittest.IsolatedAsyncioTestCase):
         async def apikey_task():
             with self.subTest("apikey"):
                 await fill_kwargs()
+                response = None
                 if inspect.iscoroutinefunction(response_eval):
+                    response = await coro(self.client_apikey, *arg, **kwargs)
                     await response_eval(
-                        await coro(self.client_apikey, *arg, **kwargs),
+                        response,
                         self.client_apikey,
                     )
                 else:
+                    response = await coro(self.client_apikey, *arg, **kwargs)
                     response_eval(
-                        await coro(self.client_apikey, *arg, **kwargs),
+                        response,
                         self.client_apikey,
                     )
+                return response
 
         async def oauth_task():
             with self.subTest("oauth"):
                 await fill_kwargs()
+                response = None
                 if inspect.iscoroutinefunction(response_eval):
-                    await response_eval(
-                        await coro(self.client_oauth, *arg, **kwargs), self.client_oauth
-                    )
+                    response = await coro(self.client_oauth, *arg, **kwargs)
+                    await response_eval(response, self.client_oauth)
                 else:
-                    response_eval(
-                        await coro(self.client_oauth, *arg, **kwargs), self.client_oauth
-                    )
+                    response = await coro(self.client_oauth, *arg, **kwargs)
+                    response_eval(response, self.client_oauth)
 
-        await asyncio.gather(
+                return response
+
+        return await asyncio.gather(
             asyncio.create_task(oauth_task()), asyncio.create_task(apikey_task())
         )
 

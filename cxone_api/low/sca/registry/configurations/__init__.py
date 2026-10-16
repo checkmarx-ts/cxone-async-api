@@ -12,7 +12,7 @@ async def retrieve_configurations(client: CxOneClient, **kwargs) -> requests.Res
     Endpoint: /api/sca/registries-configuration/configurations
     """
     url = urljoin(client.api_endpoint, "sca/registries-configuration/configurations")
-    url = join_query_dict(url, **kwargs)
+    url = join_query_dict(url, kwargs)
 
     return await client.exec_request(requests.get, url)
 
@@ -106,7 +106,7 @@ async def retrieve_a_project_configuration(
     return await client.exec_request(requests.get, url)
 
 
-async def associate_configurations_with_a_project(
+async def associate_configurations_with_project(
     client: CxOneClient, projectId: str, configurationIds: List[str]
 ) -> requests.Response:
     """|LowLevelApiDocstring|
@@ -122,7 +122,7 @@ async def associate_configurations_with_a_project(
     return await client.exec_request(requests.post, url, json=configurationIds)
 
 
-async def disassociate_configurations_from_a_project(
+async def disassociate_configurations_from_project(
     client: CxOneClient, projectId: str, configurationIds: List[str]
 ) -> requests.Response:
     """|LowLevelApiDocstring|

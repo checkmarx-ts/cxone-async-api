@@ -14,7 +14,7 @@ async def retrieve_list_of_configurations_by_tag(
     Endpoint: /api/sca/registries-configuration/tags
     """
     url = urljoin(client.api_endpoint, "sca/registries-configuration/tags")
-    url = join_query_dict(url, **kwargs)
+    url = join_query_dict(url, kwargs)
 
     return await client.exec_request(requests.get, url)
 
@@ -81,7 +81,7 @@ async def retrieve_tags_of_configuration(
     return await client.exec_request(requests.get, url)
 
 
-async def associate_tags_configuration(
+async def associate_tags_with_configuration(
     client: CxOneClient, configId: str, tags: List[str]
 ) -> requests.Response:
     """|LowLevelApiDocstring|

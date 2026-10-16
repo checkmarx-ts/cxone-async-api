@@ -14,7 +14,7 @@ async def retrieve_configurations_by_project(
     Endpoint: /api/sca/registries-configuration/projects
     """
     url = urljoin(client.api_endpoint, "sca/registries-configuration/projects")
-    url = join_query_dict(url, **kwargs)
+    url = join_query_dict(url, kwargs)
 
     return await client.exec_request(requests.get, url)
 
