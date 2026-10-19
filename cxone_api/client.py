@@ -283,4 +283,4 @@ class CxOneClient:
                 if response.ok or not await self.__should_continue_retry(response, _log, attempt):
                     return response
 
-        raise CommunicationException(verb_func, *args, **kwargs)
+        raise CommunicationException(verb_func, response, *args, **kwargs)
