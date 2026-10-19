@@ -28,7 +28,7 @@ async def create_a_configuration(
     url = urljoin(client.api_endpoint, "sca/registries-configuration/configurations")
     payload = {
         "configurationName": configurationName,
-        "packageManager": packageManager,
+        "packageManager": packageManager.value,
         "content": content,
     }
 
