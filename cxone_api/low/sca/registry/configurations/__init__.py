@@ -61,9 +61,7 @@ async def retrieve_a_configuration(
     return await client.exec_request(requests.get, url)
 
 
-async def delete_configuration(
-    client: CxOneClient, configId: str
-) -> requests.Response:
+async def delete_configuration(client: CxOneClient, configId: str) -> requests.Response:
     """|LowLevelApiDocstring|
 
     Verb: DELETE
