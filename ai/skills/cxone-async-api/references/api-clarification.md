@@ -51,3 +51,6 @@
   engagement with Checkmarx Professional Services.
 * Undocumented API endpoints are not specified in the package; the only way the user knows
   the endpoint is undocumented is if it is not found in the Checkmarx One API documentation.
+* Tips may be present in low level API docstrings that can be used to assist in using the
+  API method correctly.
+
