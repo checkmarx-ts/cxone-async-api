@@ -11,15 +11,16 @@ async def retrieve_configurations(client: CxOneClient, **kwargs) -> requests.Res
     Verb: GET
     Endpoint: /api/sca/registries-configuration/configurations
 
-    This API returns results by pages.  When using cxone_api.util.page_generator, set
-    the following parameters:
+    .. tip::
+      This API returns results by pages.  When using cxone_api.util.page_generator, set
+      the following parameters:
 
-    * offset_param = "PageNumber"
-    * offset_init_value = 1
-    * offset_is_by_count = False
+      * offset_param = "PageNumber"
+      * offset_init_value = 1
+      * offset_is_by_count = False
 
-    Optional kwarg parameter PageSize is suggested to be set to 50
-    rather than leave it at the default of 5.
+      Optional kwarg parameter PageSize is suggested to be set to 50
+      rather than leave it at the default of 5.
 
     """
     url = urljoin(client.api_endpoint, "sca/registries-configuration/configurations")
