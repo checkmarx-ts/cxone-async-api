@@ -39,7 +39,7 @@ class PackageRepositoryConfiguration:
         config_id: str,
         name: str,
         package_manager: PackageManagerType,
-        content: Any,
+        content: str,
         projects: List[str],
         tags: List[PackageRepositoryConfigurationTag],
     ) -> None:
@@ -47,7 +47,7 @@ class PackageRepositoryConfiguration:
         self.__id = config_id
         self.__name = name
         self.__type = package_manager
-        self.__content = content
+        self.__content = str(content)
         self.__projects = projects
         self.__tags = tags
         self.__lock = asyncio.Lock()
@@ -152,19 +152,11 @@ class PackageRepositoryConfiguration:
         content: str,
         tags: List[PackageRepositoryConfigurationTag] = None,
     ) -> PackageRepositoryConfiguration:
-        new_cfg = json_on_ok(
-            await create_a_configuration(client, name, packageManager, content)
+        new_cfg_result = json_on_ok(
+            await create_a_configuration(client, name, packageManager, str(content))
         )
-        inst = PackageRepositoryConfiguration()
-        inst.__internal_init(
-            client=client,
-            config_id=new_cfg.get("id"),
-            name=name,
-            package_manager=packageManager,
-            content=content,
-            projects=[],
-            tags=[],
-        )
+
+        inst = await PackageRepositoryConfiguration.retrieve_by_configid(client, new_cfg_result.get("id"))
 
         if tags is not None:
             await associate_tags_with_configuration(
