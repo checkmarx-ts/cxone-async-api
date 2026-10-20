@@ -156,7 +156,9 @@ class PackageRepositoryConfiguration:
             await create_a_configuration(client, name, packageManager, str(content))
         )
 
-        inst = await PackageRepositoryConfiguration.retrieve_by_configid(client, new_cfg_result.get("id"))
+        inst = await PackageRepositoryConfiguration.retrieve_by_configid(
+            client, new_cfg_result.get("id")
+        )
 
         if tags is not None:
             await associate_tags_with_configuration(
