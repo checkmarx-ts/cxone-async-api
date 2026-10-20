@@ -61,7 +61,7 @@ async def retrieve_a_configuration(
     return await client.exec_request(requests.get, url)
 
 
-async def delete_a_configuration(
+async def delete_configuration(
     client: CxOneClient, configId: str
 ) -> requests.Response:
     """|LowLevelApiDocstring|
@@ -76,7 +76,7 @@ async def delete_a_configuration(
     return await client.exec_request(requests.delete, url)
 
 
-async def modify_a_configuration(
+async def modify_configuration(
     client: CxOneClient,
     configId: str,
     configurationName: str,
@@ -101,7 +101,7 @@ async def modify_a_configuration(
     return await client.exec_request(requests.patch, url, json=payload)
 
 
-async def retrieve_a_project_configuration(
+async def retrieve_project_configuration(
     client: CxOneClient, projectId: str
 ) -> requests.Response:
     """|LowLevelApiDocstring|
