@@ -3,6 +3,7 @@ import asyncio
 from typing import List, Any, Dict
 from .package_manager_types import PackageManagerType
 from .sca_private_pkg_cfg_tags import PackageRepositoryConfigurationTag
+from .sca_basic_private_pkg_repo_cfg import BasicPackageRepositoryConfiguration
 from cxone_api import CxOneClient
 from cxone_api.util import json_on_ok, page_generator
 from cxone_api.exceptions import CommunicationException
@@ -28,7 +29,7 @@ from cxone_api.low.sca.registry.tags import (
 )
 
 
-class PackageRepositoryConfiguration:
+class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
 
     def __repr__(self):
         return f"{self.configId}:{self.packageManager.value}:{self.name}:projects[{len(self.associated_projects)}]:tags[{len(self.associated_tags)}]"
@@ -43,11 +44,7 @@ class PackageRepositoryConfiguration:
         projects: List[str],
         tags: List[PackageRepositoryConfigurationTag],
     ) -> None:
-        self.__client = client
-        self.__id = config_id
-        self.__name = name
-        self.__type = package_manager
-        self.__content = str(content)
+        super()._internal_init(client, config_id, name, package_manager, content)
         self.__projects = projects
         self.__tags = tags
         self.__lock = asyncio.Lock()
@@ -58,6 +55,14 @@ class PackageRepositoryConfiguration:
     ) -> PackageRepositoryConfiguration:
         return PackageRepositoryConfiguration.from_config_json(
             client, json_on_ok(await retrieve_a_configuration(client, configId))
+        )
+
+    @staticmethod
+    async def from_basic_config(
+        client: CxOneClient, basic_config: BasicPackageRepositoryConfiguration
+    ) -> PackageRepositoryConfiguration:
+        return await PackageRepositoryConfiguration.retrieve_by_configid(
+            client, basic_config.configId
         )
 
     @staticmethod
@@ -170,22 +175,6 @@ class PackageRepositoryConfiguration:
         return inst
 
     @property
-    def configId(self) -> str:
-        return self.__id
-
-    @property
-    def packageManager(self) -> PackageManagerType:
-        return self.__type
-
-    @property
-    def name(self) -> str:
-        return self.__name
-
-    @property
-    def content(self) -> str:
-        return self.__content
-
-    @property
     def associated_projects(self) -> List[str]:
         return self.__projects
 
@@ -196,7 +185,7 @@ class PackageRepositoryConfiguration:
     async def __reload_project_associations(self):
         project_assoc = json_on_ok(
             await retrieve_projects_associated_with_configuration(
-                self.__client, self.__id
+                self._client, self.configId
             )
         )
 
@@ -208,16 +197,14 @@ class PackageRepositoryConfiguration:
     async def __reload_tag_associations(self):
 
         tag_assoc = json_on_ok(
-            await retrieve_tags_of_configuration(self.__client, self.__id)
+            await retrieve_tags_of_configuration(self._client, self.configId)
         )
 
         async with self.__lock:
             self.__tags = []
             for entry in tag_assoc:
                 self.__tags.append(
-                    PackageRepositoryConfigurationTag.from_tag_json(
-                        self.__client, entry
-                    )
+                    PackageRepositoryConfigurationTag.from_tag_json(self._client, entry)
                 )
 
     async def refresh_associations(self):
@@ -227,7 +214,7 @@ class PackageRepositoryConfiguration:
     async def associate_with_projects(self, projectIds: List[str]) -> bool:
         try:
             await associate_projects_with_configuration(
-                self.__client, self.__id, projectIds
+                self._client, self.configId, projectIds
             )
         except CommunicationException:
             return False
@@ -238,7 +225,7 @@ class PackageRepositoryConfiguration:
     async def disassociate_from_project(self, projectId: str) -> bool:
         if (
             await disassociate_configurations_from_project(
-                self.__client, projectId, [self.__id]
+                self._client, projectId, [self.configId]
             )
         ).ok:
             await self.__reload_project_associations()
@@ -248,7 +235,7 @@ class PackageRepositoryConfiguration:
     async def associate_with_tag(self, tag: PackageRepositoryConfigurationTag) -> bool:
         if (
             await associate_configurations_with_tag(
-                self.__client, tag.tagid, [self.__id]
+                self._client, tag.tagid, [self.configId]
             )
         ).ok:
             await self.__reload_tag_associations()
@@ -258,7 +245,9 @@ class PackageRepositoryConfiguration:
 
     async def disassociate_all_projects(self) -> bool:
         if (
-            await disassociate_all_projects_from_configuration(self.__client, self.__id)
+            await disassociate_all_projects_from_configuration(
+                self._client, self.configId
+            )
         ).ok:
             await self.__reload_project_associations()
             return True
@@ -267,14 +256,14 @@ class PackageRepositoryConfiguration:
     async def disassociate_all_tags(self) -> bool:
         disassociate_all_tags_from_configuration
         if (
-            await disassociate_all_tags_from_configuration(self.__client, self.__id)
+            await disassociate_all_tags_from_configuration(self._client, self.configId)
         ).ok:
             await self.__reload_tag_associations()
             return True
         return False
 
     async def delete(self) -> bool:
-        if (await delete_configuration(self.__client, self.__id)).ok:
+        if (await delete_configuration(self._client, self.configId)).ok:
             async with self.__lock:
                 self.__projects = []
                 self.__tags = []
