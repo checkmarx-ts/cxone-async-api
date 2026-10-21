@@ -34,6 +34,9 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
     def __repr__(self):
         return f"{self.configId}:{self.packageManager.value}:{self.name}:projects[{len(self.associated_projects)}]:tags[{len(self.associated_tags)}]"
 
+    def __eq__(self, other):
+        return self.configId == other.configId
+
     def __internal_init(
         self,
         client: CxOneClient,

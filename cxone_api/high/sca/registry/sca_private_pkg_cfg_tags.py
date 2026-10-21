@@ -87,6 +87,9 @@ class PackageRepositoryConfigurationTag:
     def __repr__(self):
         return f"{self.tagid}:{self.name}:configs[{len(self.associated_configs)}]"
 
+    def __eq__(self, other):
+        return self.tagid == other.tagid
+
     @property
     def name(self) -> str:
         return self.__name
