@@ -14,5 +14,5 @@ class DuplicatePackageManagerException(Exception):
         clashing: List[BasicPackageRepositoryConfiguration],
     ) -> DuplicatePackageManagerException:
         return DuplicatePackageManagerException(
-            f"{config.packageManager.value} package manager clash for project [{project_id}:{project_name}]: {config} clashes with assigned configurations [{",".join([str(x) for x in clashing])}]"
+            f"{config.packageManager.value} package manager clash for project [{project_id}:{project_name}]: {config} clashes with assigned configurations [{','.join([str(x) for x in clashing])}]"
         )
