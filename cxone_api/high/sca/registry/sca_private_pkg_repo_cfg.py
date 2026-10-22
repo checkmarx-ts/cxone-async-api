@@ -248,7 +248,7 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         :rtype: PackageRepositoryConfiguration
         """
         new_cfg_result = json_on_ok(
-            await create_configuration(client, name, packageManager, str(content))
+            await create_configuration(client, name, packageManager.value, str(content))
         )
 
         inst = await PackageRepositoryConfiguration.retrieve_by_configid(
@@ -322,15 +322,18 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         :return: True if the projects were associated, False otherwise.
         :rtype: bool
         """
+        result = False
         try:
-            await associate_projects_with_configuration(
-                self._client, self.configId, projectIds
-            )
+            result = (
+                await associate_projects_with_configuration(
+                    self._client, self.configId, projectIds
+                )
+            ).ok
         except CommunicationException:
             return False
 
         await self.__reload_project_associations()
-        return True
+        return result
 
     async def disassociate_from_project(self, projectId: str) -> bool:
         """Disassociates the configuration from a project.
