@@ -126,7 +126,10 @@ class PackageRepositoryConfigurationTag:
         return f"{self.tagid}:{self.name}:configs[{len(self.associated_configs)}]"
 
     def __eq__(self, other):
-        return self.tagid == other.tagid
+        return other is not None and self.tagid == other.tagid
+
+    def __hash__(self):
+        return hash(self.tagid)
 
     @property
     def name(self) -> str:

@@ -38,7 +38,10 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         return f"{self.configId}:{self.packageManager.value}:{self.name}:projects[{len(self.associated_projects)}]:tags[{len(self.associated_tags)}]"
 
     def __eq__(self, other):
-        return self.configId == other.configId
+        return other is not None and self.configId == other.configId
+
+    def __hash__(self):
+        return hash(self.configId)
 
     def __internal_init(
         self,
@@ -393,7 +396,6 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         :return: True if the tags were disassociated, False otherwise.
         :rtype: bool
         """
-        disassociate_all_tags_from_configuration
         if (
             await disassociate_all_tags_from_configuration(self._client, self.configId)
         ).ok:
