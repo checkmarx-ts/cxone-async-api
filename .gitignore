@@ -9,6 +9,8 @@ ai/**/*.ipynb
 ai/**/cxone-async-api-docs.md
 ai/**/references/*.yaml
 
+dev.py
+
 
 # force commit the tutorial
 tutorial/*
