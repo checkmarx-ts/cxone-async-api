@@ -6,7 +6,7 @@ from cxone_api.low.sca.registry.configurations import (
     delete_configuration,
     retrieve_configurations,
     retrieve_a_configuration,
-    modify_a_configuration,
+    modify_configuration,
     retrieve_project_configuration,
     associate_configurations_with_project,
     disassociate_configurations_from_project,
