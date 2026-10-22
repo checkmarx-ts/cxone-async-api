@@ -295,7 +295,7 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
         client: CxOneClient,
         names: List[str],
         config: PackageRepositoryConfiguration,
-    ):
+    ) -> ProjectPrivateRepoAssignment:
         """Creates an assignment that selects projects by name.
 
         :param client: The CxOneClient instance used to communicate with Checkmarx One.
@@ -319,7 +319,7 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
         client: CxOneClient,
         tag_key: str,
         config: PackageRepositoryConfiguration,
-    ):
+    ) -> ProjectPrivateRepoAssignment:
         """Creates an assignment that selects projects that have a project tag
         with the given key.
 
@@ -365,9 +365,9 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
     @staticmethod
     def by_project_name_match(
         client: CxOneClient,
-        tag: PackageRepositoryConfigurationTag,
         name_regex: str,
-    ):
+        tag: PackageRepositoryConfigurationTag,
+    ) -> ProjectPrivateRepoTagAssignment:
         """Creates an assignment that selects projects with names matching a
         regular expression.
 
@@ -390,9 +390,9 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
     @staticmethod
     def by_project_names(
         client: CxOneClient,
-        tag: PackageRepositoryConfigurationTag,
         names: List[str],
-    ):
+        tag: PackageRepositoryConfigurationTag,
+    ) -> ProjectPrivateRepoTagAssignment:
         """Creates an assignment that selects projects by name.
 
         :param client: The CxOneClient instance used to communicate with Checkmarx One.
@@ -414,9 +414,9 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
     @staticmethod
     def by_project_tag(
         client: CxOneClient,
-        tag: PackageRepositoryConfigurationTag,
         tag_key: str,
-    ):
+        tag: PackageRepositoryConfigurationTag,
+    ) -> ProjectPrivateRepoTagAssignment:
         """Creates an assignment that selects projects that have a project tag
         with the given key.
 
