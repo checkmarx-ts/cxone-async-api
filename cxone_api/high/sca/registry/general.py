@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from .sca_private_pkg_repo_cfg import PackageRepositoryConfiguration
 from .sca_private_pkg_cfg_tags import PackageRepositoryConfigurationTag
 from .sca_basic_private_pkg_repo_cfg import BasicPackageRepositoryConfiguration
-from .package_manager_types import PackageManagerType
 from .exceptions import DuplicatePackageManagerException
 from cxone_api import CxOneClient
 from cxone_api.util import page_generator
