@@ -122,11 +122,7 @@ class AbstractProjectAssignment:
         return AssignmentResults(
             assignment_success=assign_success,
             assignees=projects_to_assign,
-            exceptions=[
-                x
-                for x in task_results
-                if isinstance(x, Exception) or isinstance(x, BaseException)
-            ],
+            exceptions=[x for x in task_results if isinstance(x, BaseException)],
         )
 
     async def _precheck_exec(self, semaphore: asyncio.Semaphore) -> None: ...
@@ -149,12 +145,14 @@ class AbstractProjectAssignment:
         self,
         descriptor: AssigneeDescriptor,
         configs: List[BasicPackageRepositoryConfiguration],
+        assigned_configs: List[PackageRepositoryConfiguration] = None,
     ) -> None:
-        assigned_configs = (
-            await PackageRepositoryConfiguration.retrieve_project_configurations(
-                self.client, descriptor.projectId
+        if assigned_configs is None:
+            assigned_configs = (
+                await PackageRepositoryConfiguration.retrieve_project_configurations(
+                    self.client, descriptor.projectId
+                )
             )
-        )
 
         assigned_managers = [x.packageManager for x in assigned_configs]
 
@@ -255,7 +253,9 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
                 )
                 # 2nd check in case the current config's associated projects are not correct.
                 if self.__config not in assigned_configs:
-                    await self._validate_no_clashes(descriptor, [self.__config])
+                    await self._validate_no_clashes(
+                        descriptor, [self.__config], assigned_configs
+                    )
                     return descriptor
 
     async def _process_project_assignments(
