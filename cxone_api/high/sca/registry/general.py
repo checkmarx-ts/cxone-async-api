@@ -15,22 +15,55 @@ from typing import List, AsyncGenerator
 
 @dataclass(frozen=True)
 class AssigneeDescriptor:
+    """A class that describes a project selected for assignment.
+
+    :ivar projectId: The ID of the project.
+    :vartype projectId: str
+
+    :ivar projectName: The name of the project.
+    :vartype projectName: str
+    """
+
     projectId: str
     projectName: str
 
 
 @dataclass(frozen=True)
 class AssignmentResults:
+    """A class that describes the results of executing an assignment.
+
+    :ivar assignment_success: True if all selected projects were successfully
+        assigned or no projects were selected for assignment.  False if the
+        assignment failed.
+    :vartype assignment_success: bool
+
+    :ivar assignees: The projects selected for assignment.
+    :vartype assignees: List[AssigneeDescriptor]
+
+    :ivar exceptions: Exceptions raised while checking if selected projects
+        could be assigned.  Projects that raised an exception are not assigned.
+    :vartype exceptions: List[Exception]
+    """
+
+    assignment_success: bool
     assignees: List[AssigneeDescriptor]
     exceptions: List[Exception]
 
 
 class AbstractProjectAssignment:
+    """The base class for assigning SCA private package repository configurations
+    to projects.
+    """
+
     def _internal_init(self, client: CxOneClient):
         self.__client = client
 
     @property
     def client(self) -> CxOneClient:
+        """The CxOneClient instance used to communicate with Checkmarx One.
+
+        :rtype: CxOneClient
+        """
         return self.__client
 
     def _project_page_generator(self) -> AsyncGenerator:
@@ -41,6 +74,21 @@ class AbstractProjectAssignment:
     async def execute_assignment(
         self, concurrent_threads: int = 2
     ) -> AssignmentResults:
+        """Selects the projects matching the assignment criteria and assigns
+        the configurations to them.
+
+        Projects that already have a configuration assigned for the same
+        package manager type are not assigned.
+
+        :param concurrent_threads: The maximum number of concurrent API requests.
+            Defaults to 2.
+        :type concurrent_threads: int, optional
+
+        :raises DuplicatePackageManagerException: Raised before any projects are
+            selected if the configurations to assign are malformed.
+
+        :rtype: AssignmentResults
+        """
 
         concurrency = asyncio.Semaphore(concurrent_threads)
 
@@ -63,12 +111,22 @@ class AbstractProjectAssignment:
             x for x in task_results if isinstance(x, AssigneeDescriptor)
         ]
 
+        assign_success = False
         if len(projects_to_assign) > 0:
-            await self._process_project_assignments(projects_to_assign, concurrency)
+            assign_success = await self._process_project_assignments(
+                projects_to_assign, concurrency
+            )
+        else:
+            assign_success = True
 
         return AssignmentResults(
+            assignment_success=assign_success,
             assignees=projects_to_assign,
-            exceptions=[x for x in task_results if isinstance(x, Exception)],
+            exceptions=[
+                x
+                for x in task_results
+                if isinstance(x, Exception) or isinstance(x, BaseException)
+            ],
         )
 
     async def _precheck_exec(self, semaphore: asyncio.Semaphore) -> None: ...
@@ -115,11 +173,19 @@ class AbstractProjectAssignment:
 
 
 class ProjectAssignmentDefaults(AbstractProjectAssignment):
+    """A base class implementing the default project selection criteria for
+    assignments.
+    """
 
     def by_project_name_match(
         self,
         name_regex: str,
     ):
+        """Selects projects with names matching a regular expression.
+
+        :param name_regex: The regular expression used to match project names.
+        :type name_regex: str
+        """
         self.__generator_factory = lambda: page_generator(
             retrieve_list_of_projects,
             array_element="projects",
@@ -131,6 +197,11 @@ class ProjectAssignmentDefaults(AbstractProjectAssignment):
         self,
         names: List[str],
     ):
+        """Selects projects by name.
+
+        :param names: The names of the projects to select.
+        :type names: List[str]
+        """
         self.__generator_factory = lambda: page_generator(
             retrieve_list_of_projects,
             array_element="projects",
@@ -142,6 +213,11 @@ class ProjectAssignmentDefaults(AbstractProjectAssignment):
         self,
         tag_key: str,
     ):
+        """Selects projects that have a project tag with the given key.
+
+        :param tag_key: The project tag key.
+        :type tag_key: str
+        """
         self.__generator_factory = lambda: page_generator(
             retrieve_list_of_projects,
             array_element="projects",
@@ -154,6 +230,12 @@ class ProjectAssignmentDefaults(AbstractProjectAssignment):
 
 
 class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
+    """Assigns a single package repository configuration to selected projects.
+
+    Create instances with one of the ``by_*`` static methods, then call
+    :py:meth:`execute_assignment`.  Projects that already have the configuration
+    assigned are not selected.
+    """
 
     def _internal_init(
         self, client: CxOneClient, config: PackageRepositoryConfiguration
@@ -189,6 +271,20 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
         name_regex: str,
         config: PackageRepositoryConfiguration,
     ) -> ProjectPrivateRepoAssignment:
+        """Creates an assignment that selects projects with names matching a
+        regular expression.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param name_regex: The regular expression used to match project names.
+        :type name_regex: str
+
+        :param config: The configuration to assign.
+        :type config: PackageRepositoryConfiguration
+
+        :rtype: ProjectPrivateRepoAssignment
+        """
         inst = ProjectPrivateRepoAssignment()
         inst._internal_init(client, config)
         ProjectAssignmentDefaults.by_project_name_match(inst, name_regex)
@@ -200,6 +296,19 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
         names: List[str],
         config: PackageRepositoryConfiguration,
     ):
+        """Creates an assignment that selects projects by name.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param names: The names of the projects to select.
+        :type names: List[str]
+
+        :param config: The configuration to assign.
+        :type config: PackageRepositoryConfiguration
+
+        :rtype: ProjectPrivateRepoAssignment
+        """
         inst = ProjectPrivateRepoAssignment()
         inst._internal_init(client, config)
         ProjectAssignmentDefaults.by_project_names(inst, names)
@@ -211,6 +320,20 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
         tag_key: str,
         config: PackageRepositoryConfiguration,
     ):
+        """Creates an assignment that selects projects that have a project tag
+        with the given key.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param tag_key: The project tag key.
+        :type tag_key: str
+
+        :param config: The configuration to assign.
+        :type config: PackageRepositoryConfiguration
+
+        :rtype: ProjectPrivateRepoAssignment
+        """
         inst = ProjectPrivateRepoAssignment()
         inst._internal_init(client, config)
         ProjectAssignmentDefaults.by_project_tag(inst, tag_key)
@@ -218,6 +341,13 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
 
 
 class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
+    """Assigns all package repository configurations associated with a
+    configuration tag to selected projects.
+
+    Create instances with one of the ``by_*`` static methods, then call
+    :py:meth:`execute_assignment`.  The tag must not be associated with more
+    than one configuration for the same package manager type.
+    """
 
     def _internal_init(
         self, client: CxOneClient, tag: PackageRepositoryConfigurationTag
@@ -238,6 +368,20 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
         tag: PackageRepositoryConfigurationTag,
         name_regex: str,
     ):
+        """Creates an assignment that selects projects with names matching a
+        regular expression.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param tag: The configuration tag with the configurations to assign.
+        :type tag: PackageRepositoryConfigurationTag
+
+        :param name_regex: The regular expression used to match project names.
+        :type name_regex: str
+
+        :rtype: ProjectPrivateRepoTagAssignment
+        """
         inst = ProjectPrivateRepoTagAssignment()
         inst._internal_init(client, tag)
         ProjectAssignmentDefaults.by_project_name_match(inst, name_regex)
@@ -249,6 +393,19 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
         tag: PackageRepositoryConfigurationTag,
         names: List[str],
     ):
+        """Creates an assignment that selects projects by name.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param tag: The configuration tag with the configurations to assign.
+        :type tag: PackageRepositoryConfigurationTag
+
+        :param names: The names of the projects to select.
+        :type names: List[str]
+
+        :rtype: ProjectPrivateRepoTagAssignment
+        """
         inst = ProjectPrivateRepoTagAssignment()
         inst._internal_init(client, tag)
         ProjectAssignmentDefaults.by_project_names(inst, names)
@@ -260,6 +417,20 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
         tag: PackageRepositoryConfigurationTag,
         tag_key: str,
     ):
+        """Creates an assignment that selects projects that have a project tag
+        with the given key.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param tag: The configuration tag with the configurations to assign.
+        :type tag: PackageRepositoryConfigurationTag
+
+        :param tag_key: The project tag key.
+        :type tag_key: str
+
+        :rtype: ProjectPrivateRepoTagAssignment
+        """
         inst = ProjectPrivateRepoTagAssignment()
         inst._internal_init(client, tag)
         ProjectAssignmentDefaults.by_project_tag(inst, tag_key)
@@ -273,7 +444,7 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
 
     async def _check_for_assign_selections(
         self, descriptor: AssigneeDescriptor, semaphore: asyncio.Semaphore
-    ) -> str:
+    ) -> AssigneeDescriptor:
 
         async with semaphore:
             await self._validate_no_clashes(descriptor, self.__tag.associated_configs)

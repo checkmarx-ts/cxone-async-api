@@ -5,6 +5,13 @@ from .package_manager_types import PackageManagerType
 
 
 class BasicPackageRepositoryConfiguration:
+    """A class representing the basic attributes of an SCA private package
+    repository configuration.
+
+    This does not include the projects or tags associated with the configuration.
+    Use :py:meth:`PackageRepositoryConfiguration.from_basic_config` to load the
+    full configuration.
+    """
 
     def __repr__(self):
         return f"{self.configId}:{self.packageManager.value}:{self.name}"
@@ -27,6 +34,16 @@ class BasicPackageRepositoryConfiguration:
     def from_config_json(
         client: CxOneClient, json: Dict
     ) -> BasicPackageRepositoryConfiguration:
+        """Creates an instance from a configuration JSON dictionary returned by the API.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param json: The configuration JSON dictionary.
+        :type json: Dict
+
+        :rtype: BasicPackageRepositoryConfiguration
+        """
         inst = BasicPackageRepositoryConfiguration()
         inst._internal_init(
             client=client,
@@ -44,16 +61,32 @@ class BasicPackageRepositoryConfiguration:
 
     @property
     def configId(self) -> str:
+        """The ID of the configuration.
+
+        :rtype: str
+        """
         return self.__id
 
     @property
     def packageManager(self) -> PackageManagerType:
+        """The package manager type of the configuration.
+
+        :rtype: PackageManagerType
+        """
         return self.__type
 
     @property
     def name(self) -> str:
+        """The name of the configuration.
+
+        :rtype: str
+        """
         return self.__name
 
     @property
     def content(self) -> str:
+        """The content of the configuration.
+
+        :rtype: str
+        """
         return self.__content

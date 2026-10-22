@@ -30,6 +30,9 @@ from cxone_api.low.sca.registry.tags import (
 
 
 class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
+    """A class representing an SCA private package repository configuration,
+    including the projects and tags associated with the configuration.
+    """
 
     def __repr__(self):
         return f"{self.configId}:{self.packageManager.value}:{self.name}:projects[{len(self.associated_projects)}]:tags[{len(self.associated_tags)}]"
@@ -56,6 +59,18 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
     async def retrieve_by_configid(
         client: CxOneClient, configId: str
     ) -> PackageRepositoryConfiguration:
+        """Loads a package repository configuration by ID.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param configId: The ID of the configuration to retrieve.
+        :type configId: str
+
+        :raises ResponseException: Raised if the configuration could not be retrieved.
+
+        :rtype: PackageRepositoryConfiguration
+        """
         return PackageRepositoryConfiguration.from_config_json(
             client, json_on_ok(await retrieve_a_configuration(client, configId))
         )
@@ -64,6 +79,18 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
     async def from_basic_config(
         client: CxOneClient, basic_config: BasicPackageRepositoryConfiguration
     ) -> PackageRepositoryConfiguration:
+        """Loads the full package repository configuration for a basic configuration.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param basic_config: The basic configuration to load.
+        :type basic_config: BasicPackageRepositoryConfiguration
+
+        :raises ResponseException: Raised if the configuration could not be retrieved.
+
+        :rtype: PackageRepositoryConfiguration
+        """
         return await PackageRepositoryConfiguration.retrieve_by_configid(
             client, basic_config.configId
         )
@@ -72,6 +99,16 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
     def from_config_json(
         client: CxOneClient, json: Dict
     ) -> PackageRepositoryConfiguration:
+        """Creates an instance from a configuration JSON dictionary returned by the API.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param json: The configuration JSON dictionary.
+        :type json: Dict
+
+        :rtype: PackageRepositoryConfiguration
+        """
         inst = PackageRepositoryConfiguration()
         inst.__internal_init(
             client=client,
@@ -131,6 +168,20 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
     async def retrieve_project_configurations(
         client: CxOneClient, projectId: str
     ) -> List[PackageRepositoryConfiguration]:
+        """Loads the package repository configurations assigned to a project.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param projectId: The ID of the project.
+        :type projectId: str
+
+        :raises ResponseException: Raised if the configurations could not be retrieved.
+
+        :return: A list of configurations assigned to the project.  The list is empty
+            if no configurations are assigned.
+        :rtype: List[PackageRepositoryConfiguration]
+        """
 
         result = []
 
@@ -143,6 +194,20 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
     async def retrieve_tag_configurations(
         client: CxOneClient, tag: PackageRepositoryConfigurationTag
     ) -> List[PackageRepositoryConfiguration]:
+        """Loads the package repository configurations associated with a tag.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param tag: The tag.
+        :type tag: PackageRepositoryConfigurationTag
+
+        :raises ResponseException: Raised if the configurations could not be retrieved.
+
+        :return: A list of configurations associated with the tag.  The list is empty
+            if no configurations are associated.
+        :rtype: List[PackageRepositoryConfiguration]
+        """
         result = []
 
         for cfg in json_on_ok(
@@ -160,6 +225,28 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         content: str,
         tags: List[PackageRepositoryConfigurationTag] = None,
     ) -> PackageRepositoryConfiguration:
+        """Creates a new package repository configuration.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param name: The name of the new configuration.
+        :type name: str
+
+        :param packageManager: The package manager type of the new configuration.
+        :type packageManager: PackageManagerType
+
+        :param content: The content of the new configuration.
+        :type content: str
+
+        :param tags: Tags to associate with the new configuration.  Defaults to None.
+        :type tags: List[PackageRepositoryConfigurationTag], optional
+
+        :raises ResponseException: Raised if the configuration could not be created
+            or retrieved after creation.
+
+        :rtype: PackageRepositoryConfiguration
+        """
         new_cfg_result = json_on_ok(
             await create_a_configuration(client, name, packageManager, str(content))
         )
@@ -179,10 +266,18 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
 
     @property
     def associated_projects(self) -> List[str]:
+        """The IDs of the projects associated with the configuration.
+
+        :rtype: List[str]
+        """
         return self.__projects
 
     @property
     def associated_tags(self) -> List[PackageRepositoryConfigurationTag]:
+        """The tags associated with the configuration.
+
+        :rtype: List[PackageRepositoryConfigurationTag]
+        """
         return self.__tags
 
     async def __reload_project_associations(self):
@@ -211,10 +306,22 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
                 )
 
     async def refresh_associations(self):
+        """Reloads the projects and tags associated with the configuration.
+
+        :raises ResponseException: Raised if the associations could not be retrieved.
+        """
         await self.__reload_tag_associations()
         await self.__reload_project_associations()
 
     async def associate_with_projects(self, projectIds: List[str]) -> bool:
+        """Associates the configuration with projects.
+
+        :param projectIds: The IDs of the projects to associate with the configuration.
+        :type projectIds: List[str]
+
+        :return: True if the projects were associated, False otherwise.
+        :rtype: bool
+        """
         try:
             await associate_projects_with_configuration(
                 self._client, self.configId, projectIds
@@ -226,6 +333,14 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         return True
 
     async def disassociate_from_project(self, projectId: str) -> bool:
+        """Disassociates the configuration from a project.
+
+        :param projectId: The ID of the project to disassociate from the configuration.
+        :type projectId: str
+
+        :return: True if the project was disassociated, False otherwise.
+        :rtype: bool
+        """
         if (
             await disassociate_configurations_from_project(
                 self._client, projectId, [self.configId]
@@ -236,6 +351,14 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         return False
 
     async def associate_with_tag(self, tag: PackageRepositoryConfigurationTag) -> bool:
+        """Associates the configuration with a tag.
+
+        :param tag: The tag to associate with the configuration.
+        :type tag: PackageRepositoryConfigurationTag
+
+        :return: True if the tag was associated, False otherwise.
+        :rtype: bool
+        """
         if (
             await associate_configurations_with_tag(
                 self._client, tag.tagid, [self.configId]
@@ -247,6 +370,11 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         return False
 
     async def disassociate_all_projects(self) -> bool:
+        """Disassociates the configuration from all projects.
+
+        :return: True if the projects were disassociated, False otherwise.
+        :rtype: bool
+        """
         if (
             await disassociate_all_projects_from_configuration(
                 self._client, self.configId
@@ -257,6 +385,11 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         return False
 
     async def disassociate_all_tags(self) -> bool:
+        """Disassociates the configuration from all tags.
+
+        :return: True if the tags were disassociated, False otherwise.
+        :rtype: bool
+        """
         disassociate_all_tags_from_configuration
         if (
             await disassociate_all_tags_from_configuration(self._client, self.configId)
@@ -266,6 +399,11 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         return False
 
     async def delete(self) -> bool:
+        """Deletes the configuration.
+
+        :return: True if the configuration was deleted, False otherwise.
+        :rtype: bool
+        """
         if (await delete_configuration(self._client, self.configId)).ok:
             async with self.__lock:
                 self.__projects = []
