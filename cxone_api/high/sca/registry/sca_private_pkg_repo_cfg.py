@@ -8,11 +8,11 @@ from cxone_api import CxOneClient
 from cxone_api.util import json_on_ok, page_generator
 from cxone_api.exceptions import CommunicationException
 from cxone_api.low.sca.registry.configurations import (
-    create_a_configuration,
+    create_configuration,
     disassociate_configurations_from_project,
     delete_configuration,
     associate_configurations_with_tag,
-    retrieve_a_configuration,
+    retrieve_configuration,
     retrieve_configurations,
     retrieve_project_configuration,
     retrieve_configurations_with_tag,
@@ -72,7 +72,7 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         :rtype: PackageRepositoryConfiguration
         """
         return PackageRepositoryConfiguration.from_config_json(
-            client, json_on_ok(await retrieve_a_configuration(client, configId))
+            client, json_on_ok(await retrieve_configuration(client, configId))
         )
 
     @staticmethod
@@ -248,7 +248,7 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
         :rtype: PackageRepositoryConfiguration
         """
         new_cfg_result = json_on_ok(
-            await create_a_configuration(client, name, packageManager, str(content))
+            await create_configuration(client, name, packageManager, str(content))
         )
 
         inst = await PackageRepositoryConfiguration.retrieve_by_configid(

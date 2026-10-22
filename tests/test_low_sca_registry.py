@@ -56,7 +56,7 @@ from cxone_api.util import json_on_ok, page_generator
 
 #     async def __create_configuration(self, client) -> str:
 #         while True:
-#             create_response = await create_a_configuration(
+#             create_response = await create_configuration(
 #                 client, str(uuid.uuid4()), "nuget", TestLowScaRegistry.__NUGET
 #             )
 #             if not create_response.ok and create_response.status_code == 400:
@@ -107,14 +107,14 @@ from cxone_api.util import json_on_ok, page_generator
 #             __get_cfgs, lambda result, client: self.assertTrue(result)
 #         )
 
-#     async def test_retrieve_a_configurations(self):
+#     async def test_retrieve_configurations(self):
 #         cfgs = await self.execute_client_call(
 #             self.__create_configuration, self.assert_id_not_none
 #         )
 
 #         for cfg in cfgs:
 #             await self.execute_client_call(
-#                 retrieve_a_configuration, self.assert_response_ok, {"configId": cfg}
+#                 retrieve_configuration, self.assert_response_ok, {"configId": cfg}
 #             )
 
 #     async def test_modify_a_configuration(self):
