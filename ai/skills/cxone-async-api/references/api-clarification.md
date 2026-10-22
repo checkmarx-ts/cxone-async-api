@@ -19,6 +19,7 @@
 * A good rule to follow is to avoid making more than two concurrent requests to any Checkmarx One API.
 * Proxy dictionary entries have a key corresponding to a protocol (e.g. `https` is typically the only
   protocol used with Checkmarx One) and a value with a URL to the proxy (e.g. `http://localhost:8080`).
+* Avoid using methods marked `deprecated` either by an explicit annotation or noted in the documentation.
 
 
 ## Low Level API Important Points
@@ -50,3 +51,6 @@
   engagement with Checkmarx Professional Services.
 * Undocumented API endpoints are not specified in the package; the only way the user knows
   the endpoint is undocumented is if it is not found in the Checkmarx One API documentation.
+* Tips may be present in low level API docstrings that can be used to assist in using the
+  API method correctly.
+

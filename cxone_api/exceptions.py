@@ -1,4 +1,4 @@
-import re
+import re, requests
 from typing import Type, Any, List
 
 class EndpointException(BaseException):...
@@ -23,10 +23,15 @@ class CommunicationException(BaseException):
         else:
             return content
 
-    def __init__(self, op, *args, **kwargs):
+    def __init__(self, op, response : requests.Response = None, *args, **kwargs):
         BaseException.__init__(self, f"Operation: {op.__name__} args: "
             f"[{CommunicationException.__clean(args)}]"
             f" kwargs: [{CommunicationException.__clean(kwargs)}]")
+        self.__response = response
+
+    @property
+    def response(self) -> requests.Response:
+        return self.__response
 
 class ResponseException(BaseException):...
 

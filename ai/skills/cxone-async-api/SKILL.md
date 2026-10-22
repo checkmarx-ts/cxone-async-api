@@ -31,6 +31,9 @@ Reference `references/install.md` to understand:
 * Reference `references/package-clarification.md` for information about communicating clearly
   with a human about `cxone-async-api`.
 * Reference `references/region-monikers.md` for a list of multi-tenant regional monikers.
+* Reference `references/sca-private-pkg-repo-clarification.md` for clarification on
+  SCA private package repository configurations, configuration tags, and assigning
+  configurations to projects.
 * Reference `references/**/conf.py` for information about how Sphinx is configured to build
   a PDF version of the `references/cxone-async-api-docs.md`.  The Sphinx configuration emits
   data in the PDF that is not available in the markdown version but would apply to elements

@@ -1,5 +1,5 @@
 from .element_handler import CxOneConfigElementHandler
-from ...exceptions import ConfigurationException, CommunicationException
+from ...exceptions import ConfigurationException, ResponseException
 from ...low.misc import retrieve_preset_list
 from ..util import json_on_ok
 from typing import Any, Type, List, Awaitable, Union
@@ -103,7 +103,7 @@ class SastScanConfig(BaseConfigurationCategory):
     async def get_presets() -> List[str]:
       pl_resp = await retrieve_preset_list(self._config.client)
       if not pl_resp.ok:
-        raise CommunicationException(pl_resp)
+        raise ResponseException(pl_resp)
       
       pl = json_on_ok(pl_resp)
 

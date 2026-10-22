@@ -33,7 +33,11 @@ class ScanInvoker:
                     branch : str, engine_config : Union[list,dict] = None , tags : dict = None,
                     src_zip_path : str = None, clone_user : str = None,
                     clone_cred_type : str = None, clone_cred_value : str = None) -> Response:
-        """deprecated"""
+        """
+        .. deprecated:: 1.1.9
+        Use: Class methods that indicate the scan invocation method by name.
+      
+        """
 
         submit_payload = {}
 
@@ -105,7 +109,11 @@ class ScanInvoker:
                               branch : str, engines : list = None , tags : dict = None,
                               src_zip_path : str = None, clone_user : str = None,
                               clone_cred_type : str = None, clone_cred_value : str = None) -> str:
-        """deprecated"""
+        """
+        .. deprecated:: 1.1.9
+        Use: Class methods that indicate the scan invocation method by name.
+      
+        """
 
         response = await ScanInvoker.scan_get_response(cxone_client, project_repo, branch, engines,
                               tags, src_zip_path, clone_user, clone_cred_type, clone_cred_value)
