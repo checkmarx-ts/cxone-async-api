@@ -2,10 +2,10 @@ import uuid, asyncio
 from tests import BaseTest
 from cxone_api.low.projects import create_a_project, delete_a_project
 from cxone_api.low.sca.registry.configurations import (
-    create_a_configuration,
+    create_configuration,
     delete_configuration,
     retrieve_configurations,
-    retrieve_a_configuration,
+    retrieve_configuration,
     modify_configuration,
     retrieve_project_configuration,
     associate_configurations_with_project,

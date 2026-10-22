@@ -29,7 +29,7 @@ async def retrieve_configurations(client: CxOneClient, **kwargs) -> requests.Res
     return await client.exec_request(requests.get, url)
 
 
-async def create_a_configuration(
+async def create_configuration(
     client: CxOneClient, configurationName: str, packageManager: str, content: str
 ) -> requests.Response:
     """|LowLevelApiDocstring|
@@ -47,7 +47,7 @@ async def create_a_configuration(
     return await client.exec_request(requests.post, url, json=payload)
 
 
-async def retrieve_a_configuration(
+async def retrieve_configuration(
     client: CxOneClient, configId: str
 ) -> requests.Response:
     """|LowLevelApiDocstring|
