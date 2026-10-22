@@ -3,10 +3,13 @@ import asyncio
 from dataclasses import dataclass
 from .sca_private_pkg_repo_cfg import PackageRepositoryConfiguration
 from .sca_private_pkg_cfg_tags import PackageRepositoryConfigurationTag
+from .sca_basic_private_pkg_repo_cfg import BasicPackageRepositoryConfiguration
+from .package_manager_types import PackageManagerType
 from .exceptions import DuplicatePackageManagerException
 from cxone_api import CxOneClient
 from cxone_api.util import page_generator
 from cxone_api.low.projects import retrieve_list_of_projects
+from cxone_api.low.sca.registry.projects import associate_projects_with_configuration
 from typing import List, AsyncGenerator
 
 
@@ -41,6 +44,8 @@ class AbstractProjectAssignment:
 
         concurrency = asyncio.Semaphore(concurrent_threads)
 
+        await self._precheck_exec(concurrency)
+
         tasks = []
         async for project in self._project_page_generator():
             tasks.append(
@@ -59,26 +64,54 @@ class AbstractProjectAssignment:
         ]
 
         if len(projects_to_assign) > 0:
-            await self._process_project_assignments(projects_to_assign)
+            await self._process_project_assignments(projects_to_assign, concurrency)
 
         return AssignmentResults(
             assignees=projects_to_assign,
             exceptions=[x for x in task_results if isinstance(x, Exception)],
         )
 
+    async def _precheck_exec(self, semaphore: asyncio.Semaphore) -> None: ...
+
     async def _check_for_assign_selections(
         self, project: AssigneeDescriptor, semaphore: asyncio.Semaphore
-    ) -> None:
+    ) -> AssigneeDescriptor:
         raise NotImplementedError(
             AbstractProjectAssignment._check_for_assign_selections.__name__
         )
 
     async def _process_project_assignments(
-        self, projects: List[AssigneeDescriptor]
+        self, projects: List[AssigneeDescriptor], semaphore: asyncio.Semaphore
     ) -> bool:
         raise NotImplementedError(
             AbstractProjectAssignment._process_project_assignments.__name__
         )
+
+    async def _validate_no_clashes(
+        self,
+        descriptor: AssigneeDescriptor,
+        configs: List[BasicPackageRepositoryConfiguration],
+    ) -> None:
+        assigned_configs = (
+            await PackageRepositoryConfiguration.retrieve_project_configurations(
+                self.client, descriptor.projectId
+            )
+        )
+
+        assigned_managers = [x.packageManager for x in assigned_configs]
+
+        # Check there are no assigned configs of same type of package manager.
+        clashes = []
+        for cfg in configs:
+            if cfg.packageManager in assigned_managers:
+                clashes.append(cfg)
+
+        if len(clashes) > 0:
+            raise DuplicatePackageManagerException.clash(
+                descriptor.projectId,
+                descriptor.projectName,
+                clashes,
+            )
 
 
 class ProjectAssignmentDefaults(AbstractProjectAssignment):
@@ -130,7 +163,7 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
 
     async def _check_for_assign_selections(
         self, descriptor: AssigneeDescriptor, semaphore: asyncio.Semaphore
-    ) -> str:
+    ) -> AssigneeDescriptor:
 
         async with semaphore:
             # Check if this config is already assigned.  If so, do nothing.
@@ -140,25 +173,11 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
                 )
                 # 2nd check in case the current config's associated projects are not correct.
                 if self.__config not in assigned_configs:
-                    # Check there are no assigned configs of same type of package manager.
-                    clashes = []
-                    for cfg in assigned_configs:
-                        if cfg.packageManager == self.__config.packageManager:
-                            clashes.append(cfg)
-
-                    if len(clashes) > 0:
-                        raise DuplicatePackageManagerException.clash(
-                            descriptor.projectId,
-                            descriptor.projectName,
-                            self.__config,
-                            clashes,
-                        )
-                    else:
-                        # Return project id for assignment
-                        return descriptor
+                    await self._validate_no_clashes(descriptor, [self.__config])
+                    return descriptor
 
     async def _process_project_assignments(
-        self, projects: List[AssigneeDescriptor]
+        self, projects: List[AssigneeDescriptor], semaphore: asyncio.Semaphore
     ) -> bool:
         return await self.__config.associate_with_projects(
             [x.projectId for x in projects]
@@ -205,6 +224,13 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
     ):
         super()._internal_init(client)
         self.__tag = tag
+        self.__config_map = {}
+
+        for cfg in self.__tag.associated_configs:
+            if not cfg.packageManager in self.__config_map.keys():
+                self.__config_map[cfg.packageManager] = [cfg]
+            else:
+                self.__config_map[cfg.packageManager].append(cfg)
 
     @staticmethod
     def by_project_name_match(
@@ -238,3 +264,35 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
         inst._internal_init(client, tag)
         ProjectAssignmentDefaults.by_project_tag(inst, tag_key)
         return inst
+
+    async def _precheck_exec(self, semaphore: asyncio.Semaphore) -> None:
+        # Tag can't have multiple package manager configs.
+        for k in self.__config_map.keys():
+            if len(self.__config_map[k]) > 1:
+                raise DuplicatePackageManagerException.malformed_tag(self.__tag, k)
+
+    async def _check_for_assign_selections(
+        self, descriptor: AssigneeDescriptor, semaphore: asyncio.Semaphore
+    ) -> str:
+
+        async with semaphore:
+            await self._validate_no_clashes(descriptor, self.__tag.associated_configs)
+
+            return descriptor
+
+    async def _process_project_assignments(
+        self, projects: List[AssigneeDescriptor], semaphore: asyncio.Semaphore
+    ) -> bool:
+        pids = [x.projectId for x in projects]
+
+        async def assign(configid):
+            async with semaphore:
+                return (
+                    await associate_projects_with_configuration(
+                        self.client, configid, pids
+                    )
+                ).ok
+
+        tasks = [assign(x.configId) for x in self.__tag.associated_configs]
+
+        return False not in (await asyncio.gather(*tasks))
