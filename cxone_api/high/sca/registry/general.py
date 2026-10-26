@@ -7,8 +7,11 @@ from .sca_basic_private_pkg_repo_cfg import BasicPackageRepositoryConfiguration
 from .exceptions import DuplicatePackageManagerException
 from cxone_api import CxOneClient
 from cxone_api.util import page_generator
+from cxone_api.high.exceptions import NameNotFoundException
+from cxone_api.high.access_mgmt.user_mgmt import Groups
 from cxone_api.low.projects import retrieve_list_of_projects
 from cxone_api.low.sca.registry.projects import associate_projects_with_configuration
+from pathlib import PurePosixPath
 from typing import List, AsyncGenerator
 
 
@@ -222,6 +225,37 @@ class ProjectAssignmentDefaults(AbstractProjectAssignment):
             tags_keys=[tag_key],
         )
 
+    def by_group_path(
+        self,
+        group_path: str,
+    ):
+        """Selects projects assigned to the group with the given full path.
+
+        The group is resolved when the assignment is executed.
+
+        :param group_path: The full path of the group (e.g. ``/parent/child``).
+            The leading ``/`` is optional.
+        :type group_path: str
+        """
+
+        async def generator():
+            path = str("/" / PurePosixPath(group_path))
+            group = await Groups(self.client).get_by_full_path(path)
+
+            # Never query projects without a group filter; it would select all projects.
+            if group is None:
+                raise NameNotFoundException(path)
+
+            async for project in page_generator(
+                retrieve_list_of_projects,
+                array_element="projects",
+                client=self.client,
+                groups=group.id,
+            ):
+                yield project
+
+        self.__generator_factory = generator
+
     def _project_page_generator(self) -> AsyncGenerator:
         return self.__generator_factory()
 
@@ -338,6 +372,35 @@ class ProjectPrivateRepoAssignment(ProjectAssignmentDefaults):
         ProjectAssignmentDefaults.by_project_tag(inst, tag_key)
         return inst
 
+    @staticmethod
+    def by_group_path(
+        client: CxOneClient,
+        group_path: str,
+        config: PackageRepositoryConfiguration,
+    ) -> ProjectPrivateRepoAssignment:
+        """Creates an assignment that selects projects assigned to the group
+        with the given full path.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param group_path: The full path of the group (e.g. ``/parent/child``).
+            The leading ``/`` is optional.
+        :type group_path: str
+
+        :param config: The configuration to assign.
+        :type config: PackageRepositoryConfiguration
+
+        :raises NameNotFoundException: Raised by
+            :py:meth:`execute_assignment` if no group matches ``group_path``.
+
+        :rtype: ProjectPrivateRepoAssignment
+        """
+        inst = ProjectPrivateRepoAssignment()
+        inst._internal_init(client, config)
+        ProjectAssignmentDefaults.by_group_path(inst, group_path)
+        return inst
+
 
 class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
     """Assigns all package repository configurations associated with a
@@ -435,6 +498,35 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
         ProjectAssignmentDefaults.by_project_tag(inst, tag_key)
         return inst
 
+    @staticmethod
+    def by_group_path(
+        client: CxOneClient,
+        group_path: str,
+        tag: PackageRepositoryConfigurationTag,
+    ) -> ProjectPrivateRepoTagAssignment:
+        """Creates an assignment that selects projects assigned to the group
+        with the given full path.
+
+        :param client: The CxOneClient instance used to communicate with Checkmarx One.
+        :type client: CxOneClient
+
+        :param group_path: The full path of the group (e.g. ``/parent/child``).
+            The leading ``/`` is optional.
+        :type group_path: str
+
+        :param tag: The configuration tag with the configurations to assign.
+        :type tag: PackageRepositoryConfigurationTag
+
+        :raises NameNotFoundException: Raised by
+            :py:meth:`execute_assignment` if no group matches ``group_path``.
+
+        :rtype: ProjectPrivateRepoTagAssignment
+        """
+        inst = ProjectPrivateRepoTagAssignment()
+        inst._internal_init(client, tag)
+        ProjectAssignmentDefaults.by_group_path(inst, group_path)
+        return inst
+
     async def _precheck_exec(self, semaphore: asyncio.Semaphore) -> None:
         # Tag can't have multiple package manager configs.
         for k in self.__config_map.keys():
@@ -463,6 +555,6 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
                     )
                 ).ok
 
-        tasks = [assign(x.configId) for x in self.__tag.associated_configs]
+        tasks = [assign(x.configId) for x in (await self.__tag.reload()).associated_configs]
 
         return False not in (await asyncio.gather(*tasks))

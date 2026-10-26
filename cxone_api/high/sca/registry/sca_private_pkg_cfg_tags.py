@@ -86,6 +86,15 @@ class PackageRepositoryConfigurationTag:
             client, json_on_ok(await retrieve_tag_details(client, tagId))
         )
 
+    async def reload(self) -> PackageRepositoryConfigurationTag:
+        """Reload a tag to get updated associations.
+
+        :raises ResponseException: Raised if the tag could not be retrieved.
+
+        :rtype: PackageRepositoryConfigurationTag
+        """
+        return await PackageRepositoryConfigurationTag.retrieve_by_id(self.__client, self.tagid)
+
     @staticmethod
     async def retrieve_by_name(
         client: CxOneClient, name: str
