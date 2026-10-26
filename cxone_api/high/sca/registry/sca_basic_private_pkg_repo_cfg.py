@@ -1,4 +1,5 @@
 from __future__ import annotations
+import asyncio
 from typing import Dict, List
 from cxone_api import CxOneClient
 from .package_manager_types import PackageManagerType
@@ -29,6 +30,11 @@ class BasicPackageRepositoryConfiguration:
         self.__name = name
         self.__type = package_manager
         self.__content = str(content)
+        self.__content_lock = asyncio.Lock()
+
+    async def _update_content(self, content: str) -> None:
+        async with self.__content_lock:
+            self.__content = str(content)
 
     @staticmethod
     def from_config_json(

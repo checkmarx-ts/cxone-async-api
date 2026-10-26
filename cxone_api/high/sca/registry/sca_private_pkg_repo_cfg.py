@@ -11,6 +11,7 @@ from cxone_api.low.sca.registry.configurations import (
     create_configuration,
     disassociate_configurations_from_project,
     delete_configuration,
+    modify_configuration,
     associate_configurations_with_tag,
     retrieve_configuration,
     retrieve_configurations,
@@ -400,6 +401,28 @@ class PackageRepositoryConfiguration(BasicPackageRepositoryConfiguration):
             await disassociate_all_tags_from_configuration(self._client, self.configId)
         ).ok:
             await self.__reload_tag_associations()
+            return True
+        return False
+
+    async def update_content(self, content: str) -> bool:
+        """Replaces the content of the configuration.
+
+        :param content: The new content of the configuration.
+        :type content: str
+
+        :return: True if the content was updated, False otherwise.
+        :rtype: bool
+        """
+        if (
+            await modify_configuration(
+                self._client,
+                self.configId,
+                self.name,
+                self.packageManager.value,
+                str(content),
+            )
+        ).ok:
+            await self._update_content(content)
             return True
         return False
 
