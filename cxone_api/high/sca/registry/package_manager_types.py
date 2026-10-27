@@ -20,4 +20,5 @@ class PackageManagerType(MultiValueEnum):
 
         :rtype: str
         """
+        # pylint: disable=E1101
         return self.values[1]
