@@ -8,7 +8,7 @@ class PackageManagerType(MultiValueEnum):
     Checkmarx One API.
     """
 
-    NUGET = "nuget", "NuGet.Config"
+    NUGET = "nuget", "nuget.config"
     MAVEN = "maven", "settings.xml"
     NPM = "npm", ".npmrc"
     PIP = "pip", "pip.conf"
