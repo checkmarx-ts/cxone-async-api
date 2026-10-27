@@ -1,11 +1,23 @@
-from enum import Enum
+from aenum import MultiValueEnum
 
 
-class PackageManagerType(Enum):
-    """The package manager types supported by SCA private package repository configurations."""
+class PackageManagerType(MultiValueEnum):
+    """The package manager types supported by SCA private package repository configurations.
 
-    NUGET = "nuget"
-    MAVEN = "maven"
-    NPM = "npm"
-    PIP = "pip"
-    GRADLE = "gradle"
+    The value of each member is the name of the package manager as used by the
+    Checkmarx One API.
+    """
+
+    NUGET = "nuget", "NuGet.Config"
+    MAVEN = "maven", "settings.xml"
+    NPM = "npm", ".npmrc"
+    PIP = "pip", "pip.conf"
+    GRADLE = "gradle", "init.gradle"
+
+    @property
+    def config_file_name(self) -> str:
+        """The name of the package manager's configuration file.
+
+        :rtype: str
+        """
+        return self.values[1]
