@@ -79,8 +79,10 @@ class AbstractProjectAssignment:
         """Selects the projects matching the assignment criteria and assigns
         the configurations to them.
 
-        Projects that already have a configuration assigned for the same
-        package manager type are not assigned.
+        A project is not assigned if it already has a different configuration
+        assigned for the same package manager type as a configuration being
+        assigned.  The clash is reported in :py:attr:`AssignmentResults.exceptions`.
+        Configurations already assigned to a project are not treated as clashes.
 
         :param concurrent_threads: The maximum number of concurrent API requests.
             Defaults to 2.
@@ -88,6 +90,9 @@ class AbstractProjectAssignment:
 
         :raises DuplicatePackageManagerException: Raised before any projects are
             selected if the configurations to assign are malformed.
+
+        :raises NameNotFoundException: Raised before any projects are assigned if
+            the assignment selects projects by a group path that does not match a group.
 
         :rtype: AssignmentResults
         """
@@ -156,13 +161,18 @@ class AbstractProjectAssignment:
                 )
             )
 
-        assigned_managers = [x.packageManager for x in assigned_configs]
+        assigned_managers = {}
 
-        # Check there are no assigned configs of same type of package manager.
+        for x in assigned_configs:
+            assigned_managers.setdefault(x.packageManager, []).append(x.configId)
+
+        # Check there are no assigned configs of same type of package manager
+        # that have no already been assigned.
         clashes = []
         for cfg in configs:
-            if cfg.packageManager in assigned_managers:
-                clashes.append(cfg)
+            if cfg.packageManager in assigned_managers.keys():
+                if cfg.configId not in assigned_managers[cfg.packageManager]:
+                    clashes.append(cfg)
 
         if len(clashes) > 0:
             raise DuplicatePackageManagerException.clash(
@@ -555,6 +565,8 @@ class ProjectPrivateRepoTagAssignment(ProjectAssignmentDefaults):
                     )
                 ).ok
 
-        tasks = [assign(x.configId) for x in (await self.__tag.reload()).associated_configs]
+        tasks = [
+            assign(x.configId) for x in (await self.__tag.reload()).associated_configs
+        ]
 
         return False not in (await asyncio.gather(*tasks))

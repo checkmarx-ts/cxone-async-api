@@ -93,7 +93,9 @@ class PackageRepositoryConfigurationTag:
 
         :rtype: PackageRepositoryConfigurationTag
         """
-        return await PackageRepositoryConfigurationTag.retrieve_by_id(self.__client, self.tagid)
+        return await PackageRepositoryConfigurationTag.retrieve_by_id(
+            self.__client, self.tagid
+        )
 
     @staticmethod
     async def retrieve_by_name(
