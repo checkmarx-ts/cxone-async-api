@@ -78,7 +78,7 @@ jobs:
           echo "# Pip Installation Commands" >> $INSTALLMD
           echo "" >> $INSTALLMD
           echo "## Package" >> $INSTALLMD
-          echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_api-${{ inputs.tag }}-py3-none-any.whl" >> $INSTALLMD
+          echo "pip install https://github.com/checkmarx-ts/cxone-async-api/releases/download/${{ inputs.tag }}/cxone_async_api-${{ inputs.tag }}-py3-none-any.whl" >> $INSTALLMD
           echo "" >> $INSTALLMD
 
       - name: Add OpenAPI YAML
