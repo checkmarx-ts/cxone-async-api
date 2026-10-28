@@ -1,4 +1,8 @@
 {
+  "1.1.9" : [
+    "Added SCA private registry configuration low- and high-level objects.",
+    "Update for better PyPi presentation."
+  ],
   "1.1.8" : [
     "Adjustments for PyPI publishing.",
     "Fix issue with high level group objects using PosixPath instead of PurePosixPath."
