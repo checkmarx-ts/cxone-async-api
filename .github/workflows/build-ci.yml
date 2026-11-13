@@ -7,6 +7,7 @@ on:
 
 env:
   VIRTUALENV_NO_PERIODIC_UPDATE: 1
+  PIP_INDEX_URL: https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
 
 permissions:
   contents: read
@@ -37,9 +38,10 @@ jobs:
         with:
           python-version: '${{ matrix.pver }}'
 
-      - name: Configure Pip index
+      - name: Upgrade pip
+        shell: bash
         run: |
-          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+          pip install --upgrade pip
 
       - name: Install packages
         shell: bash
