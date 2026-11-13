@@ -16,9 +16,14 @@ found in `references/README.md` that may be presented to the user.
 
 Reference `references/install.md` to understand:
 * The version number of the current release that generated this skill.
-* The `pip` installation instructions.
+* It is preferred to instruct the user to install `cxone-async-api` from PyPi for released
+  versions (i.e. versions **without** `rc` in them).  This is done using the version specifier
+  in `references/install.md` as the pinned version. For example, adding `cxone-async-api==VERSION` to `requirements.txt`.
+* The `pip` installation instructions used to install directly from the github repository.
+* For pre-releases, requirements.txt should always install from the github repository. Add the
+  wheel URL from `references/install.md` to `requirements.txt`, without the `pip install` prefix.
 * The location of the artifacts that should be used when instructing the user to obtain
-  artifacts.
+  artifacts from the github repository.
 
 # Use Case: Guide implementation with code examples
 
@@ -48,14 +53,66 @@ Reference `references/install.md` to understand:
       authentication with Checkmarx One.
 
 
+# Use Case: Single executable example (default)
+
+* Unless the user asks for a full project, output example code as a single executable
+  Python file.
+* Tell the user which packages to install to run the example: `cxone-async-api`, following
+  the `references/install.md` instructions above, and any other packages the example imports.
+* After the example, tell the user they can ask for the example as a full project.  Explain
+  that the full project adds a `requirements.txt`, loads secrets from a `.env` file using
+  `python-dotenv`, and includes this skill in the project so Claude can reference it in
+  their IDE.
+
+
+# Use Case: Build a full project
+
+Use this use case only when the user asks for a full project.
+
+* Create the project with this layout:
+  ```
+  <project>/
+  ├── .claude/
+  │   └── skills/
+  │       └── cxone-async-api/   # this skill
+  ├── .gitignore
+  ├── requirements.txt
+  └── <example>.py
+  ```
+* `requirements.txt` must contain:
+  * The `cxone-async-api` entry, following the `references/install.md` instructions above.
+  * `python-dotenv`.
+  * Any other packages the example imports.
+* Load secrets with `python-dotenv`:
+  * Call `load_dotenv()` before reading any environment variables.  Variables already set in
+    the environment take precedence over values in the `.env` file.
+  * Instruct the user to create a `.env` file in the project root containing the variables
+    the example reads, and never to commit it.
+* `.gitignore` must exclude `.env` files using the patterns `.env` and `.env.*`.  Also exclude
+  `.venv/` and `__pycache__/`.
+* Include this skill at `.claude/skills/cxone-async-api/` so Claude in the user's IDE can
+  reference it:
+  * If you can write files, copy this skill's directory, including `SKILL.md` and
+    `references/`, into `.claude/skills/cxone-async-api/` unchanged.
+  * Otherwise, instruct the user to download `cxone-async-api-skill.zip` from the GitHub
+    release matching the version in `references/install.md`
+    (`<Github Repository>/releases/download/<Version>/cxone-async-api-skill.zip`, using the
+    values in `references/install.md`) and extract it into `.claude/skills/cxone-async-api/`.
+    `SKILL.md` is at the root of the zip.
+  * The skill version must match the `cxone-async-api` version in `requirements.txt`.
+* Instruct the user how to set up and run the project: create a virtual environment, run
+  `pip install -r requirements.txt`, create the `.env` file, and run the example.
+
+
 # Output
 
-* Before outputting any example code, ensure that it is in the form
-  of a single executable Python example file.
+* Before outputting any example code, ensure that it follows the single executable example
+  use case, or the full project use case if the user asked for a full project.
 * Ensure that the use of sensitive variables, such as those mentioned
   in `references/auth-clarifications.md`, are obtained from environment variables
   in emitted examples.  Instruct the user how to set the environment variables
-  before they execute the example code.
+  before they execute the example code.  In a full project, the environment variables
+  are loaded from the `.env` file.
 * At the start of code comments documenting the code, include the URL for the
   Checkmarx One API documentation and instruct the user it is the most
   accurate usage reference for low-level APIs.

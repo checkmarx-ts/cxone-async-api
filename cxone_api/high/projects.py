@@ -240,8 +240,9 @@ class ProjectRepoConfig:
         """The organization in the SCM that owns the source repository associated with this project."""
         if not await self.is_scm_imported or await self.scm_creds_expired:
             return None
+        repo_cfg = await self.__get_repomgr_config()
 
-        return CloneUrlParser(await self.scm_type, await self.repo_url).org
+        return repo_cfg.get("orgIdentity")
 
     @property
     async def scm_type(self):

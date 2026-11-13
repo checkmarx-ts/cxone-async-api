@@ -18,8 +18,12 @@ on:
 permissions:
   contents: read
 
-jobs:
+env:
+  VIRTUALENV_NO_PERIODIC_UPDATE: 1
+  PIP_INDEX_URL: https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
 
+
+jobs:
   tag-repo:
     runs-on: cx-public-ubuntu-x64
     outputs:
@@ -109,6 +113,11 @@ jobs:
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.12"
+
+      - name: Upgrade pip
+        shell: bash
+        run: |
+          pip install --upgrade pip
 
       - name: Make release text header
         run: |

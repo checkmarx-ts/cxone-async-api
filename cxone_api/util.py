@@ -55,7 +55,7 @@ class CloneUrlParser:
         "azure" : re.compile("^(?P<scheme>.+)://((?P<cred>.+)@)?.+/(?P<org>.+)/(?P<project>.+)/_git/(?P<repo>.+?)(\\.git)?$")
     }
 
-    __default = re.compile("^.*[/:]{1}(?P<org>.+)/(?P<repo>.+?)(\\.git)?$")
+    __default = re.compile("^(?P<scheme>.+)://((?P<cred>.+)@)?(?P<fqdn>.+?)(:[0-9]{1,6})?/(?P<org>.+?)/(?P<repo>.+?)(\\.git)?$")
 
     def __init__(self, repo_type, clone_url):
         matcher = CloneUrlParser.__parsers[repo_type] \
