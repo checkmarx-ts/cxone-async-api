@@ -31,11 +31,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Upgrade pip
-        shell: bash
-        run: |
-          python -m pip install --upgrade pip
-
       - name: Build PDF
         run: |
           echo "__version__='${{ inputs.tag }}'" > cxone_api/__version__.py
