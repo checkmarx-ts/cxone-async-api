@@ -1,4 +1,10 @@
 {
+  "1.1.10" : [
+    "Fixed ProjectRepoConfig reporting incorrect SCM organization assignment.",
+    "Fixed CloneUrlParser to better handle Gitlab URLs.",
+    "Added low-level API support to update specific project fields.",
+    "Base class for exceptions changed to Exception to align with common practices."
+  ],
   "1.1.9" : [
     "Added SCA private registry configuration low- and high-level objects.",
     "Update for better PyPi presentation."

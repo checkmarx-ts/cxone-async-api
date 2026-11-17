@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+env:
+  VIRTUALENV_NO_PERIODIC_UPDATE: 1
+  PIP_INDEX_URL: https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+
 jobs:
   build-api-docs:
     runs-on: cx-public-ubuntu-x64
@@ -23,13 +27,10 @@ jobs:
         with:
           ref: ${{ inputs.tag }}
 
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          python-version: "3.12"
-
-      - name: Configure Pip index
+      - name: Upgrade pip
+        shell: bash
         run: |
-          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+          pip install --upgrade pip
 
       - name: Build PDF
         run: |
@@ -60,9 +61,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Configure Pip index
+      - name: Upgrade pip
+        shell: bash
         run: |
-          pip config set global.index-url https://:${{ secrets.ECHO_LIBRARIES_ACCESS_KEY }}@pypi.echohq.com/simple
+          pip install --upgrade pip
 
       - name: Build Markdown Docs
         run: |

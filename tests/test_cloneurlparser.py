@@ -8,19 +8,19 @@ class TestCloneUrlUnknown(unittest.TestCase):
 
     def test_http_with_port(self):
         parse = CloneUrlParser(
-            "unknown", "http://the_host:7990/scm/the_org/the_repo.git"
+            "unknown", "http://the_host:7990/the_org/the_repo.git"
         )
         self.assertTrue(
-            parse.scheme is None
+            parse.scheme == "http"
             and parse.creds is None
             and parse.org == "the_org"
             and parse.repo == "the_repo"
         )
 
     def test_http_with_port_no_git(self):
-        parse = CloneUrlParser("unknown", "http://the_host:7990/scm/the_org/the_repo")
+        parse = CloneUrlParser("unknown", "http://the_host:7990/the_org/the_repo")
         self.assertTrue(
-            parse.scheme is None
+            parse.scheme == "http"
             and parse.creds is None
             and parse.org == "the_org"
             and parse.repo == "the_repo"
